@@ -1,0 +1,71 @@
+.user-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    font-size: 16px;
+    text-align: left;
+    border: 1px solid #ddd;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background-color: #ffffff;
+}
+
+.user-table th,
+.user-table td {
+    padding: 14px 20px;
+}
+
+.user-table thead {
+    background-color: #2D3E50;
+    color: white;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.user-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.user-table tr:hover {
+    transition: background 0.3s ease-in-out;
+}
+
+.user-table th {
+    border-bottom: 3px solid #ddd;
+    text-align: center;
+}
+
+.user-table td {
+    border-bottom: 1px solid #ddd;
+    text-align: center;
+}
+
+.user-table td:hover {
+    background-color: #f9f9f9;
+}
+
+.user-table .btn.danger {
+    background-color: #ff4d4d;
+    color: white;
+    padding: 8px 12px;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background 0.3s ease-in-out;
+}
+
+.user-table .btn.danger:hover {
+    background-color: #cc0000;
+}
+
+
+/* Responsive Design */
+
+@media screen and (max-width: 768px) {
+    .user-table th,
+    .user-table td {
+        padding: 10px;
+    }
+    .user-table .btn.danger {
+        padding: 6px 10px;
+    }
+}

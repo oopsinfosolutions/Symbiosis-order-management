@@ -1,0 +1,76 @@
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import "../styles/ViewOrders.css";
+
+const ViewOrders = () => {
+  const [orders, setOrders] = useState([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const limit = 20; // Orders per page
+
+  useEffect(() => {
+    axios
+      .get(`http://localhost:5000/api/orders?page=${page}&limit=${limit}`)
+      .then((res) => {
+        console.log("API response:", res.data);
+        
+        const fetchedOrders = Array.isArray(res.data.orders) ? res.data.orders : [];
+        setOrders(fetchedOrders);
+        
+        const pages = res.data.totalPages || 1;
+        setTotalPages(pages);
+      })
+      .catch((err) => {
+        console.error("Failed to fetch orders:", err);
+      });
+  }, [page]);
+
+  const nextPage = () => setPage((prev) => Math.min(prev + 1, totalPages));
+  const prevPage = () => setPage((prev) => Math.max(prev - 1, 1));
+
+  return (
+    <div className="orders-container">
+      <h2>All Orders</h2>
+      <table className="orders-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Date</th>
+            <th>Brand</th>
+            <th>Client</th>
+            <th>Quantity</th>
+            <th>MRP</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {orders.length === 0 ? (
+            <tr><td colSpan="8">No orders found.</td></tr>
+          ) : (
+            orders.map((order) => (
+              <tr key={order.id}>
+                <td>{order.id}</td>
+                <td>{order.date?.split("T")[0]}</td>
+                <td>{order.brandName}</td>
+                <td>{order.clientName}</td>
+                <td>{order.qty}</td>
+                <td>{order.mrp}</td>
+                <td>{order.productStatus}</td>
+                <td>--</td>
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
+
+      <div className="pagination">
+        <button onClick={prevPage} disabled={page === 1}>Previous</button>
+        <span>Page {page} of {totalPages}</span>
+        <button onClick={nextPage} disabled={page === totalPages}>Next</button>
+      </div>
+    </div>
+  );
+};
+
+export default ViewOrders;
