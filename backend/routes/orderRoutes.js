@@ -3,7 +3,6 @@ const router = express.Router();
 const db = require('../config/db'); // Sequelize connection
 const { QueryTypes } = require('sequelize');
 
-// Helper to avoid undefined or empty string values
 const safeValue = (v) => (v !== undefined && v !== '' ? v : null);
 
 // POST new order using Sequelize Model (optional)
@@ -174,5 +173,29 @@ router.post('/getBrandDetails', async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 });
+
+router.get('/orders/by-concerned/:empId', async (req, res) => {
+    const { empId } = req.params;
+  
+    try {
+      const sql = `
+
+      SELECT o.*
+      FROM orders o
+      JOIN SignUps s ON o.concernedPerson = s.fullName
+
+      `;
+  
+      const [results] = await db.query(sql, {
+        replacements: [empId],
+      });
+  
+      res.json(results);
+    } catch (err) {
+      console.error("Error fetching orders for concerned person:", err);
+      res.status(500).json({ message: "Failed to fetch concerned orders" });
+    }
+  });
+  
 
 module.exports = router;
