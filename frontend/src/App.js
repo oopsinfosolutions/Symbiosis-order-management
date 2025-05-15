@@ -9,6 +9,8 @@ import Deleteusers from './components/Admin/Deleteusers';
 import ListUsers from './components/Admin/Listusers';
 import UpdateUsers from './components/Admin/Updateusers';
 import AdminLogin from './components/AdminLogin';
+import ConcernedPersonDashboard from "./components/ConcernedPerson/ConcernedPErsonDashboard";
+import ConcernedOrders from "./components/ConcernedPerson/ConcernedOrders";
 
 function App() {
   return (
@@ -23,6 +25,10 @@ function App() {
         <Route path="/Listusers" element={<ListUsers />} />
         <Route path="/Updateusers" element={<UpdateUsers />} />
         <Route path="/Adminlogin" element={<AdminLogin />} />
+        <Route path="/view-orders/:empId" element={<ConcernedOrders />} />
+        <Route path="/orders/:empId" element={<ConcernedOrders />} />
+        <Route path="/employee-dashboard" element={<ConcernedPersonDashboard />} />
+
       </Routes>
     </Router>
   );
