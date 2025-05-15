@@ -34,10 +34,10 @@ const Login = () => {
     window.scrollTo(0, 0);
 
     const message = sessionStorage.getItem('signupMessage');
-  if (message) {
-    setSignupMessage(message);
-    sessionStorage.removeItem('signupMessage');
-  }
+    if (message) {
+      setSignupMessage(message);
+      sessionStorage.removeItem('signupMessage');
+    }
   }, []);
 
   const createNotification = (type, message) => {
@@ -68,13 +68,14 @@ const Login = () => {
           const userName = json.fullName;
 
           if (userName) {
-            sessionStorage.setItem("fullname", userName);
-            sessionStorage.setItem("id", json.Emp_id);
+            sessionStorage.setItem('fullname', userName);
+            sessionStorage.setItem('id', json.Emp_id);
 
-            createNotification('success', `Welcome to your form`);
-            const redirectPath = '/multiform';
+            createNotification('success', `Welcome to your orders`);
 
-            setTimeout(() => navigate(redirectPath), 1000);
+            // Redirect to ConcernedOrders page (using empId)
+            const redirectPath = `/orders/${json.Emp_id}`;
+            setTimeout(() => navigate(redirectPath), 1000); // Redirect with delay to show notification
           } else {
             createNotification('warning', 'Unexpected response structure');
           }
@@ -88,9 +89,8 @@ const Login = () => {
 
   return (
     <div className="login-container">
-
       <div className="login-form">
-        <h1>Log in to continue your learning journey</h1>
+        <h1>Log in to continue your orders</h1>
         <form id="loginForm" onSubmit={onLogin}>
           <label htmlFor="Emp_id">Employee ID</label>
           <input
@@ -126,16 +126,15 @@ const Login = () => {
           </p>
         </div>
         {signupMessage && (
-  <div className="signup-message">
-    <p>{signupMessage}</p>
-  </div>
-)}
+          <div className="signup-message">
+            <p>{signupMessage}</p>
+          </div>
+        )}
         <div className="signup-link">
           <p>
             <a href="/Forgetpassword">Forget Password</a>
           </p>
         </div>
-
       </div>
     </div>
   );

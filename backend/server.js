@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const sequelize = require("./config/db");
 require("dotenv").config();
+const SignUp = require('./models/SignUp');
 
 const orderRoutes = require("./routes/orderRoutes");
 const concernedPersonsRoute = require('./routes/concernedPerson');
@@ -74,28 +75,32 @@ app.post('/Login', async (req, res) => {
   }
 });
 
-app.post('/AdminLogin', (req, res) => {
+app.post('/AdminLogin', async (req, res) => {
     const { email, password } = req.body;
 
     const query = `SELECT * FROM SignUps WHERE email = ?`;
 
-    conn.query(query, [email], (err, results) => {
-        if (err) {
-            console.error(err);
-            res.status(500).json({ error: 'Internal Server Error' });
-        } else if (results.length === 0) {
-            res.status(401).json({ error: 'Invalid email or password' });
-        } else {
-            const user = results[0];
-            const passwordMatch = user.password === password;
+    try {
+        const [results] = await sequelize.query(query, {
+            replacements: [email]
+        });
 
-            if (passwordMatch && user.type === 'admin') {
-                res.json(user);
-            } else {
-                res.status(401).json({ error: 'Invalid email, password, or user type' });
-            }
+        if (results.length === 0) {
+            return res.status(401).json({ error: 'Invalid email or password' });
         }
-    });
+
+        const user = results[0];
+        const passwordMatch = user.password === password;
+
+        if (passwordMatch && user.type === 'admin') {
+            res.json(user);
+        } else {
+            res.status(401).json({ error: 'Invalid email, password, or user type' });
+        }
+    } catch (err) {
+        console.error("AdminLogin error:", err);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
 });
 
 
@@ -104,7 +109,7 @@ app.delete("/deleteUsers/:id", async(req, res) => {
 
     try {
         const sql = "DELETE FROM SignUps WHERE Emp_id = ?";
-        conn.query(sql, [id], (err, result) => {
+        sequelize.query(sql, [id], (err, result) => {
             if (err) {
                 console.error("Error deleting user:", err.message);
                 return res.status(500).json({ success: false, message: "Server error. Unable to delete user." });
@@ -122,19 +127,21 @@ app.delete("/deleteUsers/:id", async(req, res) => {
     }
 });
 
-
-app.get('/Listusers', (req, res) => {
-    const sql = `SELECT Emp_id, fullName, email, phone FROM SignUps WHERE type = 'user'`;
-
-    conn.query(sql, (err, results) => {
-        if (err) {
-            console.error("Error fetching users:", err);
-            return res.status(500).json({ success: false, message: "Failed to fetch users" });
-        }
-
-        res.json(results);
+app.get('/Listusers', async (req, res) => {
+  try {
+    const users = await SignUp.findAll({
+      where: { type: 'user' },
+      attributes: ['Emp_id', 'fullName', 'email', 'phone']
     });
+
+    res.json(users);
+  } catch (err) {
+    console.error("Error fetching users:", err);
+    res.status(500).json({ success: false, message: "Failed to fetch users" });
+  }
 });
+
+  
 
 app.put('/updateusers', (req, res) => {
     const { Emp_id, fullName, email, phone, password } = req.body;
@@ -157,7 +164,7 @@ app.put('/updateusers', (req, res) => {
 
     const params = password ? [fullName, email, phone, password, Emp_id] : [fullName, email, phone, Emp_id];
 
-    conn.query(sql, params, (err, result) => {
+    sequelize.query(sql, params, (err, result) => {
         if (err) {
             console.error("Error updating user:", err);
             return res.json({ success: false, message: 'Database error occurred while updating user.' });
@@ -179,5 +186,5 @@ sequelize.sync().then(() => {
     console.log(`Server running on port ${process.env.PORT}`);
   });
 }).catch(err => {
-  console.error("Failed to connect to DB:", err);
+  console.error("Failed to sequelizeect to DB:", err);
 });
