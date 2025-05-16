@@ -53,6 +53,7 @@ const OrderProcessForm = () => {
     setArtworkFile(e.target.files[0]);
   };
 
+
   useEffect(() => {
     const fetchBrands = async () => {
       try {
@@ -205,6 +206,8 @@ const OrderProcessForm = () => {
   const prevStep = () => {
     if (currentStep > 1) setCurrentStep((prev) => prev - 1);
   };
+
+  
 
   const handleSubmit = async () => {
     try {
@@ -385,16 +388,23 @@ const OrderProcessForm = () => {
       <Header />
       <div className="form-container">
         <div className="progress-bar">
-          {steps.map((_, index) => (
-            <div
-              key={index}
-              className={`step ${currentStep === index + 1 ? "active" : ""}`}
-              onClick={() => showForm(index + 1)}
-            >
-              {index + 1}
-            </div>
-          ))}
-        </div>
+  <div
+    className="progress-line"
+    style={{
+      width: `${(currentStep - 1) / (steps.length - 1) * 100}%`,
+    }}
+  ></div>
+  {steps.map((_, index) => (
+    <div
+      key={index}
+      className={`step ${currentStep === index + 1 ? "active" : ""}`}
+      onClick={() => showForm(index + 1)}
+    >
+      {index + 1}
+    </div>
+  ))}
+</div>
+
 
         <div className="form-content">
           <div className="form-step active">
@@ -402,14 +412,20 @@ const OrderProcessForm = () => {
             {steps[currentStep - 1].content}
           </div>
           <div className="form-navigation">
-            {currentStep > 1 && <button onClick={prevStep}>Previous</button>}
-            {currentStep < steps.length && (
-              <button onClick={nextStep}>Next</button>
-            )}
-            {currentStep === steps.length && (
-              <button onClick={handleSubmit}>Submit</button>
-            )}
-          </div>
+  <button
+    onClick={prevStep}
+    disabled={currentStep === 1}
+  >
+    Previous
+  </button>
+  {currentStep < steps.length && (
+    <button onClick={nextStep}>Next</button>
+  )}
+  {currentStep === steps.length && (
+    <button onClick={handleSubmit}>Submit</button>
+  )}
+</div>
+
         </div>
       </div>
     </>
