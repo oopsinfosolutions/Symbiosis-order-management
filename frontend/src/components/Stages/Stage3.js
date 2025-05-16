@@ -3,6 +3,33 @@ import React from 'react';
 const Stage3 = ({ formData, handleChange }) => (
   <div>
     <label>
+        Concerned Person:
+        <input
+          type="text"
+          name="concernedPerson"
+          value={formData.concernedPerson}
+          onChange={handleChange}
+        />
+      </label>
+      <label>
+        Brand Name:
+        <input
+          type="text"
+          name="brandName"
+          value={formData.brandName}
+          onChange={handleChange}
+        />
+      </label>
+      <label>
+        Designer Details:
+        <input
+          type="text"
+          name="designer"
+          value={formData.designer}
+          onChange={handleChange}
+        />
+      </label>
+    <label>
       Approved Artwork:
       <select name="approvedArtwork" value={formData.approvedArtwork} onChange={handleChange}>
         <option value="approved">Approved</option>

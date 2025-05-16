@@ -200,7 +200,7 @@ const OrderProcessForm = () => {
       return;
     }
 
-    if (currentStep < 6) setCurrentStep((prev) => prev + 1);
+    if (currentStep < steps.length) setCurrentStep((prev) => prev + 1);
   };
 
   const prevStep = () => {
@@ -375,12 +375,33 @@ const OrderProcessForm = () => {
         </>
       ),
     },
-    { title: "Stage 2: Packing Material Status", content: <Stage2 formData={formData} handleChange={handleChange} /> },
-    { title: "Stage 3: Artwork Status", content: <Stage3 formData={formData} handleChange={handleChange} /> },
-    { title: "Stage 4: Order Form", content: <Stage4 formData={formData} handleChange={handleChange} /> },
-    { title: "Stage 5: Receipt Details", content: <Stage5 formData={formData} handleChange={handleChange} /> },
-    { title: "Stage 6: Finished Product Dispatch", content: <Stage6 formData={formData} handleChange={handleChange} /> },
-
+    ...(formData.productStatus === "repeat"
+      ? [
+          {
+            title: "Stage 2: Packing Material Status",
+            content: <Stage2 formData={formData} handleChange={handleChange} />,
+          },
+        ]
+      : formData.productStatus === "new"
+      ? [
+          {
+            title: "Stage 3: Artwork Status",
+            content: <Stage3 formData={formData} handleChange={handleChange} />,
+          },
+        ]
+      : []),
+    {
+      title: "Stage 4: Order Form",
+      content: <Stage4 formData={formData} handleChange={handleChange} />,
+    },
+    {
+      title: "Stage 5: Receipt Details",
+      content: <Stage5 formData={formData} handleChange={handleChange} />,
+    },
+    {
+      title: "Stage 6: Finished Product Dispatch",
+      content: <Stage6 formData={formData} handleChange={handleChange} />,
+    },
   ];
 
   return (
