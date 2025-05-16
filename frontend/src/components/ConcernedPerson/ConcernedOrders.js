@@ -25,18 +25,21 @@ function ConcernedOrders() {
     fetchOrders();
   }, [empId]);
 
-  const getStatus = (orderDate) => {
+  const getStatus = (orderDate, productStatus) => {
     if (!orderDate) return { label: "No date", color: "bg-gray-400" };
-
-    const now = dayjs();
-    const order = dayjs(orderDate);
-    const diff = now.diff(order, "day");
-
-    if (diff < 0) return { label: "Upcoming", color: "bg-green-500" };
+  
+    const now = dayjs().startOf("day");
+    const daysToAdd = productStatus?.toLowerCase() === "new" ? 5 : 2;
+    const dueDate = dayjs(orderDate).add(daysToAdd, "day").startOf("day");
+    const diff = dueDate.diff(now, "day");
+  
+    if (diff > 1) return { label: `${diff} days left`, color: "bg-green-400" };
+    if (diff === 1) return { label: "1 day left", color: "bg-yellow-300" };
     if (diff === 0) return { label: "Due today", color: "bg-yellow-400" };
-    if (diff === 1 || diff === 2) return { label: `${2 - diff} day(s) left`, color: "bg-yellow-300" };
     return { label: "Overdue", color: "bg-red-500" };
   };
+  
+  
 
   const handleView = (id) => {
     navigate(`/order-form/${id}`);
@@ -76,13 +79,14 @@ function ConcernedOrders() {
               <th className="py-2 px-4 border">Quantity</th>
               <th className="py-2 px-4 border">Rate</th>
               <th className="py-2 px-4 border">Amount</th>
+              <th className="py-2 px-4 border">Product Status</th>
               <th className="py-2 px-4 border">Status</th>
               <th className="py-2 px-4 border">Actions</th>
             </tr>
           </thead>
           <tbody>
             {filteredOrders.map((order) => {
-              const { label, color } = getStatus(order.date);
+              const { label, color } = getStatus(order.date, order.productStatus);
               return (
                 <tr key={order._id}>
                   <td className="py-2 px-4 border">{order.id}</td>
@@ -91,6 +95,7 @@ function ConcernedOrders() {
                   <td className="py-2 px-4 border">{order.qty}</td>
                   <td className="py-2 px-4 border">{order.rate}</td>
                   <td className="py-2 px-4 border">{order.amount}</td>
+                  <td className="py-2 px-4 border">{order.productStatus}</td>
                   <td className="py-2 px-4 border">
                     <span className={`text-white px-2 py-1 rounded text-sm ${color}`}>{label}</span>
                   </td>

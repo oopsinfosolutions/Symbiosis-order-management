@@ -4,12 +4,12 @@ const sequelize = require("./config/db");
 require("dotenv").config();
 const SignUp = require('./models/SignUp');
 
-const orderRoutes = require("./routes/orderRoutes");
-const concernedPersonsRoute = require('./routes/concernedPerson');
-
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+const orderRoutes = require("./routes/orderRoutes");
+const concernedPersonsRoute = require('./routes/concernedPerson');
 
 // Mount routes
 app.use('/api', orderRoutes);
