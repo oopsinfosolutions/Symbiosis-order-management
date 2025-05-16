@@ -35,8 +35,8 @@ const Order = sequelize.define('Order', {
   },
   section: DataTypes.STRING,
   productStatus: {
-    type: DataTypes.ENUM('In Progress', 'Completed', 'On Hold'),
-    defaultValue: 'In Progress',
+    type: DataTypes.ENUM('NEW', 'REPEAT'),
+    defaultValue: 'NEW',
   },
   designer: DataTypes.STRING,
 

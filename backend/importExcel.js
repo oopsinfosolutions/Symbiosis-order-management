@@ -41,7 +41,7 @@ async function importExcelData() {
           mrp: row["MRP"] || null,
           clientName: row["PARTY NAME"],
           section: row["Section"],
-          productStatus: row["Product Status"] || "In Progress",
+          productStatus: row["Product Status"] || "NEW",
           designer: row["Designer"],
           concernedPerson: row["Concerned Person"],
           innerPacking: row["Inner Packing"],

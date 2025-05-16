@@ -13,6 +13,15 @@ const Stage2 = ({ formData, handleChange }) => {
         />
       </label>
       <label>
+        Brand Name:
+        <input
+          type="text"
+          name="concernedPerson"
+          value={formData.brandName}
+          onChange={handleChange}
+        />
+      </label>
+      <label>
         Inner Packing:
         <input
           type="text"

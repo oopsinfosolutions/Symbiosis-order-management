@@ -27,16 +27,17 @@ function ConcernedOrders() {
 
   const getStatus = (orderDate) => {
     if (!orderDate) return { label: "No date", color: "bg-gray-400" };
-
-    const now = dayjs();
-    const order = dayjs(orderDate);
-    const diff = now.diff(order, "day");
-
-    if (diff < 0) return { label: "Upcoming", color: "bg-green-500" };
+  
+    const now = dayjs().startOf("day");
+    const dueDate = dayjs(orderDate).add(2, "day").startOf("day");
+    const diff = dueDate.diff(now, "day");
+  
+    if (diff > 1) return { label: `${diff} days left`, color: "bg-green-400" };
+    if (diff === 1) return { label: "1 day left", color: "bg-yellow-300" };
     if (diff === 0) return { label: "Due today", color: "bg-yellow-400" };
-    if (diff === 1 || diff === 2) return { label: `${2 - diff} day(s) left`, color: "bg-yellow-300" };
     return { label: "Overdue", color: "bg-red-500" };
   };
+  
 
   const handleView = (id) => {
     navigate(`/order-form/${id}`);
