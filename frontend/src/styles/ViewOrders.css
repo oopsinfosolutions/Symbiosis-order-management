@@ -1,17 +1,16 @@
 .orders-container {
     padding: 20px;
-  }
-  
-  .orders-table {
+    background-color: aliceblue;
+}
+
+.orders-table {
     width: 100%;
     border-collapse: collapse;
-  }
-  
-  .orders-table th,
-  .orders-table td {
+}
+
+.orders-table th,
+.orders-table td {
     border: 1px solid #ccc;
     padding: 8px;
     text-align: left;
-  }
-  
-  
+}

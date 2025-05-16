@@ -69,7 +69,7 @@ function Signup() {
   };
 
   return (
-    <center>
+      <div className="login-container">
       <div className="signup-form2">
         <h1>Sign up Details</h1>
         <form id="signupForm2" onSubmit={handleSignup}>
@@ -125,8 +125,13 @@ function Signup() {
             Already have an account? <a href="/Login">Log in</a>
           </p>
         </div>
+        <div className="login-link">
+          <p>
+            Admin? <a href="/AdminLogin">Your Log in</a>
+          </p>
+        </div>
       </div>
-    </center>
+      </div>
   );
 }
 
