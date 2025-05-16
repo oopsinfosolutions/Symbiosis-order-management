@@ -8,12 +8,14 @@ import Stage4 from "./Stages/Stage4";
 import Stage5 from "./Stages/Stage5";
 import Stage6 from "./Stages/Stage6";
 import Header from "./Header";
+import { useNavigate } from "react-router-dom";
 
 const OrderProcessForm = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [brands, setBrands] = useState([]);
   const [concernedPersons, setConcernedPersons] = useState([]);
   const [artworkFile, setArtworkFile] = useState(null);
+  const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split("T")[0],
@@ -46,13 +48,9 @@ const OrderProcessForm = () => {
     dispatchDate: "",
     qtyDispatch: "",
     shipper: "",
-    id: null,
   });
 
-  const handleFileChange = (e) => {
-    setArtworkFile(e.target.files[0]);
-  };
-
+  const handleFileChange = (e) => setArtworkFile(e.target.files[0]);
 
   useEffect(() => {
     const fetchBrands = async () => {
@@ -67,7 +65,6 @@ const OrderProcessForm = () => {
         console.error("Error fetching brands:", error);
       }
     };
-
     fetchBrands();
   }, []);
 
@@ -78,31 +75,39 @@ const OrderProcessForm = () => {
     setFormData((prev) => ({ ...prev, amount: amount.toFixed(2) }));
   }, [formData.qty, formData.rate]);
 
+  useEffect(() => {
+    const fetchConcernedPersons = async () => {
+      try {
+        const res = await axios.get("http://localhost:5000/api/concerned-persons");
+        const options = res.data.map((name) => ({
+          value: name,
+          label: name,
+        }));
+        setConcernedPersons(options);
+      } catch (error) {
+        console.error("Error fetching concerned persons:", error);
+      }
+    };
+    fetchConcernedPersons();
+  }, []);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleBrandChange = async (selectedOption) => {
-    if (!selectedOption) {
-      setFormData((prev) => ({ ...prev, brandName: "" }));
-      return;
-    }
-
-    const selectedBrand = selectedOption.value;
-
+    const selectedBrand = selectedOption?.value || "";
     setFormData((prev) => ({ ...prev, brandName: selectedBrand }));
 
+    if (!selectedBrand) return;
+
     try {
-      const res = await axios.post(
-        "http://localhost:5000/api/getBrandDetails",
-        {
-          brandName: selectedBrand,
-        }
-      );
+      const res = await axios.post("http://localhost:5000/api/getBrandDetails", {
+        brandName: selectedBrand,
+      });
 
       const data = res.data?.data || {};
-
       setFormData((prev) => ({
         ...prev,
         composition: data.composition || "",
@@ -112,7 +117,7 @@ const OrderProcessForm = () => {
         mrp: data.mrp || "",
         clientName: data.clientName || "",
         section: data.section || "",
-        productStatus: data.productStatus || "",
+        productStatus: data.productStatus || "new",
       }));
     } catch (error) {
       console.error("Error fetching brand details:", error);
@@ -132,51 +137,29 @@ const OrderProcessForm = () => {
       mrp: "",
       clientName: "",
       section: "",
-      productStatus: "",
+      productStatus: "new",
     }));
   };
 
-  useEffect(() => {
-    const fetchConcernedPersons = async () => {
-      try {
-        const res = await axios.get("http://localhost:5000/api/concerned-persons");
-        console.log(res.data);
-        const options = res.data.map((name) => ({
-          value: name,
-          label: name,
-        }));
-
-        console.log(options);
-        setConcernedPersons(options);
-      } catch (error) {
-        console.error("Error fetching concerned persons:", error);
-      }
-    };
-
-    fetchConcernedPersons();
-  }, []);
-
+  const requiredFieldsByStep = {
+    1: [
+      "date", "brandName", "composition", "packSize", "qty", "rate", "amount",
+      "mrp", "clientName", "section", "productStatus", "concernedPerson"
+    ],
+    2: [], // add if needed
+    3: [], // add if needed
+    4: [], // add if needed
+    5: [], // add if needed
+    6: [], // add if needed
+  };
 
   const nextStep = async () => {
-    const requiredFieldsByStep = {
-      1: ["date", "brandName", "qty", "rate"],
-      2:
-        formData.productStatus === "repeat"
-          ? ["concernedPerson", "innerPacking", "outerPacking", "foilTube"]
-          : [],
-      3:
-        formData.productStatus === "new" &&
-          formData.approvedArtwork === "hold"
-          ? ["approvedArtwork", "reasonIfHold"]
-          : formData.productStatus === "new"
-            ? ["approvedArtwork"]
-            : [],
-      4: ["poNumber", "poDate"],
-      5: ["receiptDate"],
-      6: ["dispatchDate", "qtyDispatch", "shipper"],
-    };
+    const requiredFields = requiredFieldsByStep[currentStep] || [];
+    if (formData.productStatus === "new" && currentStep === 1) {
+      requiredFields.push("designer");
+    }
 
-    for (let field of requiredFieldsByStep[currentStep] || []) {
+    for (let field of requiredFields) {
       if (!formData[field]) {
         alert("Please fill all required fields in Stage " + currentStep);
         return;
@@ -188,12 +171,9 @@ const OrderProcessForm = () => {
         ...formData,
         step: currentStep,
       });
-
       if (res.data.id && !formData.id) {
         setFormData((prev) => ({ ...prev, id: res.data.id }));
       }
-
-      console.log("Progress saved for step", currentStep);
     } catch (error) {
       console.error("Error saving progress:", error);
       alert("Failed to save progress.");
@@ -207,9 +187,17 @@ const OrderProcessForm = () => {
     if (currentStep > 1) setCurrentStep((prev) => prev - 1);
   };
 
-  
-
   const handleSubmit = async () => {
+    const requiredFields = requiredFieldsByStep[1];
+    if (formData.productStatus === "new") requiredFields.push("designer");
+
+    for (let field of requiredFields) {
+      if (!formData[field]) {
+        alert(`Please fill the required field: ${field}`);
+        return;
+      }
+    }
+
     try {
       const data = new FormData();
       Object.entries(formData).forEach(([key, value]) =>
@@ -217,12 +205,12 @@ const OrderProcessForm = () => {
       );
       if (artworkFile) data.append("artwork", artworkFile);
 
-      const res = await axios.post("http://localhost:5000/api/orders", data, {
+      const res = await axios.post("http://localhost:5000/api/saveProgress", data, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      console.log("Form submitted:", res.data);
       alert("Order submitted successfully!");
+      navigate("/view-orders");
     } catch (err) {
       console.error("Submission failed:", err);
       alert("Failed to submit order.");
@@ -376,32 +364,13 @@ const OrderProcessForm = () => {
       ),
     },
     ...(formData.productStatus === "repeat"
-      ? [
-          {
-            title: "Stage 2: Packing Material Status",
-            content: <Stage2 formData={formData} handleChange={handleChange} />,
-          },
-        ]
+      ? [{ title: "Stage 2: Packing Material Status", content: <Stage2 formData={formData} handleChange={handleChange} /> }]
       : formData.productStatus === "new"
-      ? [
-          {
-            title: "Stage 3: Artwork Status",
-            content: <Stage3 formData={formData} handleChange={handleChange} />,
-          },
-        ]
+      ? [{ title: "Stage 3: Artwork Status", content: <Stage3 formData={formData} handleChange={handleChange} /> }]
       : []),
-    {
-      title: "Stage 4: Order Form",
-      content: <Stage4 formData={formData} handleChange={handleChange} />,
-    },
-    {
-      title: "Stage 5: Receipt Details",
-      content: <Stage5 formData={formData} handleChange={handleChange} />,
-    },
-    {
-      title: "Stage 6: Finished Product Dispatch",
-      content: <Stage6 formData={formData} handleChange={handleChange} />,
-    },
+    { title: "Stage 4: Order Form", content: <Stage4 formData={formData} handleChange={handleChange} /> },
+    { title: "Stage 5: Receipt Details", content: <Stage5 formData={formData} handleChange={handleChange} /> },
+    { title: "Stage 6: Finished Product Dispatch", content: <Stage6 formData={formData} handleChange={handleChange} /> },
   ];
 
   return (
@@ -409,23 +378,20 @@ const OrderProcessForm = () => {
       <Header />
       <div className="form-container">
         <div className="progress-bar">
-  <div
-    className="progress-line"
-    style={{
-      width: `${(currentStep - 1) / (steps.length - 1) * 100}%`,
-    }}
-  ></div>
-  {steps.map((_, index) => (
-    <div
-      key={index}
-      className={`step ${currentStep === index + 1 ? "active" : ""}`}
-      onClick={() => showForm(index + 1)}
-    >
-      {index + 1}
-    </div>
-  ))}
-</div>
-
+          <div
+            className="progress-line"
+            style={{ width: `${((currentStep - 1) / (steps.length - 1)) * 100}%` }}
+          ></div>
+          {steps.map((_, index) => (
+            <div
+              key={index}
+              className={`step ${currentStep === index + 1 ? "active" : ""}`}
+              onClick={() => showForm(index + 1)}
+            >
+              {index + 1}
+            </div>
+          ))}
+        </div>
 
         <div className="form-content">
           <div className="form-step active">
@@ -433,20 +399,12 @@ const OrderProcessForm = () => {
             {steps[currentStep - 1].content}
           </div>
           <div className="form-navigation">
-  <button
-    onClick={prevStep}
-    disabled={currentStep === 1}
-  >
-    Previous
-  </button>
-  {currentStep < steps.length && (
-    <button onClick={nextStep}>Next</button>
-  )}
-  {currentStep === steps.length && (
-    <button onClick={handleSubmit}>Submit</button>
-  )}
-</div>
+            {/* <button onClick={prevStep} disabled={currentStep === 1}>
+              Previous
+            </button> */}
+            <button onClick={handleSubmit}>Submit</button>
 
+          </div>
         </div>
       </div>
     </>
