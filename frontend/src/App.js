@@ -28,7 +28,7 @@ function App() {
         <Route path="/view-orders/:empId" element={<ConcernedOrders />} />
         <Route path="/orders/:empId" element={<ConcernedOrders />} />
         <Route path="/employee-dashboard" element={<ConcernedPersonDashboard />} />
-
+        <Route path="/multiform/:._id" element={<OrderProcessForm />} />
       </Routes>
     </Router>
   );
