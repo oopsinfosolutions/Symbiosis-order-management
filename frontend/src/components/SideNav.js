@@ -1,21 +1,20 @@
 import React from "react";
-import "../../components/Sidebar.css";
+import "./Sidebar.css";
 
 
 
-const Nav = () => {
+const SideNav = () => {
   const menuItems = [
-    { name: "Add Users", link: "/Addusers" },
-    { name: "Update Users", link: "/Updateusers" },
-    { name: "List Users", link: "/Listusers" },
-    { name: "Delete Users", link: "/Deleteusers" },
-    { name: "Form Progress", link: "/ConcernedPersonsList" },
+    { name: "Add Form", link: "/multiform" },
+    { name: "Your Orders", link: "/view-orders/:empId" },
+    { name: "All Orders", link: "/view-orders" },
+    { name: "Logout", link: "#" },
   ];
 
   return (
     <div className="sidebar">
       <div className="logo">
-        <h1>Admin panel</h1>
+        <h1>Emp panel</h1>
       </div>
       <ul className="menu">
         {menuItems.map((item, index) => (
@@ -31,4 +30,4 @@ const Nav = () => {
   );
 };
 
-export default Nav;
+export default SideNav;

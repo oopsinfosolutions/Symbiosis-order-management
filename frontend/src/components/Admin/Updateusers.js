@@ -84,17 +84,15 @@ const UpdateUsers = () => {
 
   return (
     <>
-    <Nav/>
-    <br/>
-    <br/>
-    <br/>
-    <br/>
-    <div className="admin-layout ">
-      <center>
-      <header>
+    <div className="layout-container">
+      <div className="sidebar-container">
+        <Nav/>
+      </div>
+      <div className="form-section">
+      <form onSubmit={handleUpdate}>
+        <header>
         <h1>Update User</h1>
       </header>
-      <form onSubmit={handleUpdate} className="signup-form2">
         <input
           type="text"
           id="fullName"
@@ -136,10 +134,12 @@ const UpdateUsers = () => {
         />
         <button type="submit">Update User</button>
       </form>
-      </center>
-      <div className="admin-layout nav-wrapper">
+      </div>
+      </div>
       <div className="content">
+        <center>
       <h2>User List</h2>
+      </center>
       <table className="user-table ">
         <thead>
           <tr>
@@ -171,8 +171,6 @@ const UpdateUsers = () => {
         </tbody>
       </table>
       </div>
-      </div>
-    </div>
     </>
   );
 };

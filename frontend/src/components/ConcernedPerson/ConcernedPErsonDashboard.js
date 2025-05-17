@@ -1,6 +1,5 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import Header from '../Header';
 
 const ConcernedPersonDashboard = ({ empId }) => {
   const navigate = useNavigate();
@@ -11,7 +10,6 @@ const ConcernedPersonDashboard = ({ empId }) => {
 
     return (
         <>
-            <Header />
             <div>
                 <h2>Welcome Concerned Person</h2>
                 <button
