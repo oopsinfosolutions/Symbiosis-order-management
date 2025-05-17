@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import dayjs from "dayjs";
+import SideNav from "../SideNav";
 
 function ConcernedOrders() {
   const { empId } = useParams();
@@ -50,6 +51,11 @@ function ConcernedOrders() {
   );
 
   return (
+     <div className="layout-container">
+          <div className="sidebar-container">
+            <SideNav/>
+          </div>
+          <div className="form-section">
     <div className="p-4 orders-container">
       <h2 className="text-xl font-bold mb-4">Your Orders</h2>
 
@@ -119,6 +125,8 @@ function ConcernedOrders() {
           </tbody>
         </table>
       )}
+    </div>
+    </div>
     </div>
   );
 }

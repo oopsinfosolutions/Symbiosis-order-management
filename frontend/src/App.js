@@ -11,6 +11,7 @@ import UpdateUsers from './components/Admin/Updateusers';
 import AdminLogin from './components/AdminLogin';
 import ConcernedPersonDashboard from "./components/ConcernedPerson/ConcernedPErsonDashboard";
 import ConcernedOrders from "./components/ConcernedPerson/ConcernedOrders";
+import ConcernedPersonsList from "./components/Admin/ConcernedPersonsList";
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
         <Route path="/view-orders/:empId" element={<ConcernedOrders />} />
         <Route path="/orders/:empId" element={<ConcernedOrders />} />
         <Route path="/employee-dashboard" element={<ConcernedPersonDashboard />} />
+        <Route path="/ConcernedPersonsList" element={<ConcernedPersonsList/>} />
         <Route path="/multiform/:._id" element={<OrderProcessForm />} />
       </Routes>
     </Router>

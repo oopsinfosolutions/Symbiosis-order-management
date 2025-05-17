@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "../styles/ViewOrders.css";
+import SideNav from "./SideNav";
 
 const ViewOrders = () => {
   const [orders, setOrders] = useState([]);
@@ -29,6 +30,11 @@ const ViewOrders = () => {
   const prevPage = () => setPage((prev) => Math.max(prev - 1, 1));
 
   return (
+    <div className="layout-container">
+      <div className="sidebar-container">
+        <SideNav/>
+      </div>
+      <div className="form-section">
     <div className="orders-container">
       <h2>All Orders</h2>
       <table className="orders-table">
@@ -69,6 +75,8 @@ const ViewOrders = () => {
         <span>Page {page} of {totalPages}</span>
         <button onClick={nextPage} disabled={page === totalPages}>Next</button>
       </div>
+    </div>
+    </div>
     </div>
   );
 };
