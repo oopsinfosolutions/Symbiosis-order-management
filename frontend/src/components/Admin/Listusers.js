@@ -26,14 +26,11 @@ const ListUsers = () => {
 
   return (
     <>
-    <Nav/>
-    <br/>
-    <br/>
-    <br/>
-    <br/>
-    <div>
-    <div className="admin-layout nav-wrapper">
-      <div className="content">
+    <div className="layout-container">
+      <div className="sidebar-container">
+        <Nav/>
+      </div>
+      <div className="form-section">
         <header>
           <h1>User List</h1>
         </header>
@@ -66,7 +63,6 @@ const ListUsers = () => {
           </table>
         </main>
       </div>
-    </div>
     </div>
     </>
   );

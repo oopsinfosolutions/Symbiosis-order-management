@@ -66,13 +66,11 @@ function Addusers() {
 
   return (
     <>
-    <Nav/>
-    <br/>
-    <br/>
-    <br/>
-    <br/>
-    <center>
-      <div className="signup-form2 ">
+    <div className="layout-container">
+      <div className="sidebar-container">
+        <Nav/>
+      </div>
+      <div className="form-section">
         <h1>Add User</h1>
         <form id="addUserForm" onSubmit={handleAddUser}>
           <label htmlFor="fullName">Full Name</label>
@@ -123,7 +121,7 @@ function Addusers() {
           <button type="submit" className="btn primary">Add User</button>
         </form>
       </div>
-    </center>
+    </div>
     </>
   );
 }

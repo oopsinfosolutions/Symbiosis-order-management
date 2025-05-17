@@ -40,13 +40,11 @@ const DeleteUsers = () => {
 
   return (
     <>
-    <Nav/>
-    <br/>
-    <br/>
-    <br/>
-    <br/>
-    <div className="admin-layout nav-wrapper">
-      <div className="content ">
+     <div className="layout-container">
+      <div className="sidebar-container">
+        <Nav/>
+      </div>
+      <div className="form-section">
         <header>
           <h1>Delete Users</h1>
         </header>

@@ -140,3 +140,59 @@ button[type="submit"] {
 button[type="submit"]:hover:not(:disabled) {
     background-color: #218838;
 }
+
+.layout-container {
+    display: flex;
+    height: 100vh;
+    width: 100%;
+}
+
+.sidebar-container {
+    width: 250px;
+    background-color: #4a4e69;
+}
+
+.form-section {
+    flex-grow: 1;
+    padding: 20px;
+    background-color: #f4f4f9;
+    overflow-y: auto;
+}
+
+.progress-bar {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.progress-line {
+    height: 5px;
+    background-color: #22223b;
+    flex-grow: 1;
+    border-radius: 5px;
+    margin-right: 10px;
+}
+
+.step {
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #c9ada7;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.step.active {
+    background-color: #9a8c98;
+    transform: scale(1.2);
+}
+
+.form-content {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
