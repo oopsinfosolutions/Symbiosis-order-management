@@ -7,8 +7,8 @@ import Stage3 from "./Stages/Stage3";
 import Stage4 from "./Stages/Stage4";
 import Stage5 from "./Stages/Stage5";
 import Stage6 from "./Stages/Stage6";
-import Header from "./Header";
 import { useNavigate } from "react-router-dom";
+import SideNav from "./SideNav";
 
 const OrderProcessForm = () => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -375,8 +375,11 @@ const OrderProcessForm = () => {
 
   return (
     <>
-      <Header />
-      <div className="form-container">
+       <div className="layout-container">
+      <div className="sidebar-container">
+        <SideNav/>
+      </div>
+      <div className="form-section">
         <div className="progress-bar">
           <div
             className="progress-line"
@@ -406,6 +409,7 @@ const OrderProcessForm = () => {
 
           </div>
         </div>
+      </div>
       </div>
     </>
   );
