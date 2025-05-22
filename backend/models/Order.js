@@ -39,6 +39,7 @@ const Order = sequelize.define('Order', {
     defaultValue: 'NEW',
   },
   designer: DataTypes.STRING,
+  stage: DataTypes.NUMBER,
 
   // Stage 2: Packing Material Status
   concernedPerson: DataTypes.STRING,

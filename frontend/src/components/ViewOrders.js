@@ -2,12 +2,49 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "../styles/ViewOrders.css";
 import SideNav from "./SideNav";
+import { useNavigate } from "react-router-dom";
 
 const ViewOrders = () => {
   const [orders, setOrders] = useState([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const limit = 20; // Orders per page
+  const navigate = useNavigate();
+
+  const handleEditOrder = (order) => {
+    const { id, productStatus } = order;
+  
+    let nextStage;
+    console.log(order)
+  
+    if (order.stage == 1 && productStatus === "repeat") {
+      nextStage = 2;
+    } else if (order.stage == 1 && productStatus === "new") {
+      nextStage = 3;
+    } else {
+      nextStage = 1; // fallback
+    }
+
+    nextStage = order.stage + 1;
+  
+    // Optional: backend sync
+    axios
+      .post("http://localhost:5000/api/orders/edit-status", {
+        orderId: id,
+        status: productStatus,
+      })
+      .then((res) => {
+        console.log("Status update sent:", res.data);
+  
+        // Pass order data using state
+        navigate(`/multiform/${id}?stage=${nextStage}`, { state: { order } });
+      })
+      .catch((err) => {
+        console.error("Failed to send edit info:", err);
+      });
+  };
+  
+  
 
   useEffect(() => {
     axios
@@ -63,8 +100,21 @@ const ViewOrders = () => {
                 <td>{order.qty}</td>
                 <td>{order.mrp}</td>
                 <td>{order.productStatus}</td>
-                <td>--</td>
-              </tr>
+                <td>
+                    {/* <button
+                    onClick={() => navigate(`/multiform/${order.id}`)}
+                    className="btn-view"
+                    >
+                        View
+                    </button>{" "} */}
+                        <button
+                            onClick={() => handleEditOrder(order)}
+                            className="btn-edit"
+                        >
+                            Edit
+                        </button>
+                    </td>
+                </tr>
             ))
           )}
         </tbody>
@@ -73,7 +123,7 @@ const ViewOrders = () => {
       <div className="pagination">
         <button onClick={prevPage} disabled={page === 1}>Previous</button>
         <span>Page {page} of {totalPages}</span>
-        <button onClick={nextPage} disabled={page === totalPages}>Next</button>
+        <button onClick={nextPage} disabled={page === totalPages}> Next</button>
       </div>
     </div>
     </div>

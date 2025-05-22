@@ -9,13 +9,45 @@ import Stage5 from "./Stages/Stage5";
 import Stage6 from "./Stages/Stage6";
 import { useNavigate } from "react-router-dom";
 import SideNav from "./SideNav";
+import { useSearchParams } from "react-router-dom";
+import { useParams, useLocation } from "react-router-dom";
+import { useMemo } from "react";
+
 
 const OrderProcessForm = () => {
-  const [currentStep, setCurrentStep] = useState(1);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const stageFromQuery = parseInt(searchParams.get("stage")) || 1;
+
+  const [currentStep, setCurrentStep] = useState(stageFromQuery);
+  // const [formData, setFormData] = useState({});
   const [brands, setBrands] = useState([]);
   const [concernedPersons, setConcernedPersons] = useState([]);
   const [artworkFile, setArtworkFile] = useState(null);
   const navigate = useNavigate();
+  const [options, setOptions] = useState([]);
+
+  const { id } = useParams();
+  const location = useLocation();
+  const order = location.state?.order;
+
+  useEffect(() => {
+    const fetchOrder = async () => {
+      try {
+        const res = await axios.get(`http://localhost:5000/api/orders/${id}`);
+        setFormData(res.data);
+      } catch (err) {
+        console.error("Failed to fetch order by ID", err);
+      }
+    };
+  
+    if (order) {
+      setFormData(order);
+      setArtworkFile(null);
+    } else if (id) {
+      fetchOrder();
+    }
+  }, [order, id]);
+  
 
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split("T")[0],
@@ -28,7 +60,7 @@ const OrderProcessForm = () => {
     mrp: "",
     clientName: "",
     section: "",
-    productStatus: "new",
+    productStatus: "New",
     designer: "",
     concernedPerson: "",
     innerPacking: "",
@@ -48,9 +80,33 @@ const OrderProcessForm = () => {
     dispatchDate: "",
     qtyDispatch: "",
     shipper: "",
+    // stage: ""
   });
 
-  const handleFileChange = (e) => setArtworkFile(e.target.files[0]);
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+  
+    if (!['image/jpeg', 'image/jpg'].includes(file.type)) {
+      alert('Only JPEG files are allowed.');
+      return;
+    }
+    console.log(file)
+  
+    const previewUrl = URL.createObjectURL(file);
+    setArtworkFile(file); // <-- This is important
+    setFormData((prev) => ({
+      ...prev,
+      attachApprovedArtwork: previewUrl,
+    }));
+  };  
+
+  const amount = useMemo(() => {
+    const qty = parseFloat(formData.qty) || 0;
+    const rate = parseFloat(formData.rate) || 0;
+    return (qty * rate).toFixed(2);
+  }, [formData.qty, formData.rate]);
+  
 
   useEffect(() => {
     const fetchBrands = async () => {
@@ -69,21 +125,14 @@ const OrderProcessForm = () => {
   }, []);
 
   useEffect(() => {
-    const qty = parseFloat(formData.qty) || 0;
-    const rate = parseFloat(formData.rate) || 0;
-    const amount = qty * rate;
-    setFormData((prev) => ({ ...prev, amount: amount.toFixed(2) }));
-  }, [formData.qty, formData.rate]);
-
-  useEffect(() => {
     const fetchConcernedPersons = async () => {
       try {
         const res = await axios.get("http://localhost:5000/api/concerned-persons");
-        const options = res.data.map((name) => ({
-          value: name,
-          label: name,
+        const formattedOptions = res.data.map((person) => ({
+          value: person.emp_id,   // what we save
+          label: person.fullName, // what we show
         }));
-        setConcernedPersons(options);
+        setOptions(formattedOptions);
       } catch (error) {
         console.error("Error fetching concerned persons:", error);
       }
@@ -91,11 +140,19 @@ const OrderProcessForm = () => {
     fetchConcernedPersons();
   }, []);
 
+
+  // const handleChange = (e) => {
+  //   const { name, value } = e.target;
+  //   setFormData((prev) => ({ ...prev, [name]: value }));
+  // };
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
   };
-
+  
   const handleBrandChange = async (selectedOption) => {
     const selectedBrand = selectedOption?.value || "";
     setFormData((prev) => ({ ...prev, brandName: selectedBrand }));
@@ -117,7 +174,7 @@ const OrderProcessForm = () => {
         mrp: data.mrp || "",
         clientName: data.clientName || "",
         section: data.section || "",
-        productStatus: data.productStatus || "new",
+        productStatus: "New",
       }));
     } catch (error) {
       console.error("Error fetching brand details:", error);
@@ -137,59 +194,75 @@ const OrderProcessForm = () => {
       mrp: "",
       clientName: "",
       section: "",
-      productStatus: "new",
+      productStatus: "New",
     }));
   };
 
   const requiredFieldsByStep = {
-    1: [
-      "date", "brandName", "composition", "packSize", "qty", "rate", "amount",
-      "mrp", "clientName", "section", "productStatus", "concernedPerson"
-    ],
-    2: [], // add if needed
-    3: [], // add if needed
-    4: [], // add if needed
-    5: [], // add if needed
-    6: [], // add if needed
+    1: ["date", "brandName", "composition", "packSize", "qty", "rate", "mrp", "clientName", "section", "productStatus", "concernedPerson"],
+    2: ["innerPacking", "outerPacking", "foilTube", "additional"],
+    3: ["approvedArtwork"],
+    4: ["poNumber", "poDate", "innerOrder", "outerOrder", "foilTubeOrder", "additionalOrder"],
+    5: ["receiptDate", "shortExcess"],
+    6: ["dispatchDate", "qtyDispatch", "shipper"]
   };
 
   const nextStep = async () => {
-    const requiredFields = requiredFieldsByStep[currentStep] || [];
-    if (formData.productStatus === "new" && currentStep === 1) {
+    const requiredFields = [...(requiredFieldsByStep[currentStep] || [])];
+    if (formData.productStatus === "New" && currentStep === 1) {
       requiredFields.push("designer");
     }
-
+  
     for (let field of requiredFields) {
       if (!formData[field]) {
         alert("Please fill all required fields in Stage " + currentStep);
         return;
       }
     }
-
+  
     try {
-      const res = await axios.post("http://localhost:5000/api/saveProgress", {
-        ...formData,
-        step: currentStep,
+      const data = new FormData();
+      Object.entries(formData).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          data.append(key, typeof value === 'object' ? JSON.stringify(value) : value);
+        }
       });
+  
+      if (artworkFile) {
+        data.append("artwork", artworkFile);
+      }
+  
+      data.set("stage", currentStep + 1);
+  
+      const res = await axios.post("http://localhost:5000/api/saveProgress", data, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+  
       if (res.data.id && !formData.id) {
         setFormData((prev) => ({ ...prev, id: res.data.id }));
+      }
+  
+      if (currentStep < steps.length) {
+        setCurrentStep((prev) => prev + 1);
+        setSearchParams({ stage: (currentStep + 1).toString() });
       }
     } catch (error) {
       console.error("Error saving progress:", error);
       alert("Failed to save progress.");
-      return;
     }
-
-    if (currentStep < steps.length) setCurrentStep((prev) => prev + 1);
   };
+  
 
   const prevStep = () => {
-    if (currentStep > 1) setCurrentStep((prev) => prev - 1);
+    if (currentStep > 1) {
+      setCurrentStep((prev) => prev - 1);
+      setSearchParams({ stage: (currentStep - 1).toString() });
+    }
   };
 
   const handleSubmit = async () => {
-    const requiredFields = requiredFieldsByStep[1];
-    if (formData.productStatus === "new") requiredFields.push("designer");
+    const requiredFields = [...requiredFieldsByStep[1]];
+    if (formData.productStatus === "New") requiredFields.push("designer");
 
     for (let field of requiredFields) {
       if (!formData[field]) {
@@ -200,24 +273,32 @@ const OrderProcessForm = () => {
 
     try {
       const data = new FormData();
-      Object.entries(formData).forEach(([key, value]) =>
-        data.append(key, value)
-      );
+      Object.entries(formData).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          data.append(key, typeof value === 'object' ? JSON.stringify(value) : value);
+        }
+      });
+    
       if (artworkFile) data.append("artwork", artworkFile);
-
+    
+      data.set("stage", currentStep);
+    
       const res = await axios.post("http://localhost:5000/api/saveProgress", data, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-
+    
       alert("Order submitted successfully!");
       navigate("/view-orders");
     } catch (err) {
       console.error("Submission failed:", err);
       alert("Failed to submit order.");
     }
+    
+  }
+  const showForm = (step) => {
+    setCurrentStep(step);
+    setSearchParams({ stage: step.toString() });
   };
-
-  const showForm = (step) => setCurrentStep(step);
 
   const steps = [
     {
@@ -280,7 +361,7 @@ const OrderProcessForm = () => {
           />
 
           <label>Amount</label>
-          <input type="number" name="amount" value={formData.amount} disabled />
+          <input type="number" name="amount" value={amount} disabled readOnly />
 
           <label>MRP</label>
           <input
@@ -297,14 +378,23 @@ const OrderProcessForm = () => {
             value={formData.clientName}
             onChange={handleChange}
           />
-
           <label>Section</label>
-          <input
-            type="text"
+          <select
             name="section"
             value={formData.section}
             onChange={handleChange}
-          />
+          >
+            <option value="">Select Section</option>
+            <option value="TABLET">TABLET</option>
+            <option value="CAPSULE">CAPSULE</option>
+            <option value="EXTERNAL PREPERATION">EXTERNAL PREPERATION</option>
+            <option value="ORAL LIQUID">ORAL LIQUID</option>
+            <option value="INJECTION">INJECTION</option>
+            <option value="SOFTGEL">SOFTGEL</option>
+            <option value="SACHET">SACHET</option>
+            <option value="DRY SYRUP">DRY SYRUP</option>
+            <option value="EYE/EAR/NASAL DROP">EYE/EAR/NASAL DROP</option>
+          </select>
 
           <label>Product Status</label>
           <select
@@ -312,28 +402,29 @@ const OrderProcessForm = () => {
             value={formData.productStatus}
             onChange={handleChange}
           >
-            <option value="new">New</option>
+            <option value="New">New</option>
             <option value="repeat">Repeat</option>
           </select>
 
-          {formData.productStatus === "new" && (
+          {formData.productStatus === "New" && (
             <>
-              <label>Designer Assigned (If New)</label>
+              <label>Designer</label>
               <select
                 name="designer"
                 value={formData.designer}
                 onChange={handleChange}
+                className="border p-2 rounded"
               >
-                <option value="">Select</option>
-                <option value="symbiosis">Symbiosis</option>
-                <option value="nk">NK</option>
-                <option value="tejas">Tejas</option>
+                <option value="">Select Designer</option>
+                <option value="SYMBIOSIS">SYMBIOSIS </option>
+                <option value="NK">NK</option>
+                <option value="TEJAS">TEJAS</option>
               </select>
             </>
           )}
 
-          <label>Concerned Person</label>
-          <CreatableSelect
+{/* <label>Concerned Person</label> */}
+          {/* <CreatableSelect
             options={concernedPersons}
             value={
               formData.concernedPerson
@@ -359,18 +450,56 @@ const OrderProcessForm = () => {
             }}
             isSearchable
             placeholder="Search or add concerned person"
-          />
+            menuPortalTarget={document.body} // Important to avoid MenuProvider errors
+            styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
+          /> */}
+          <label>Concerned Person</label>
+<CreatableSelect
+  options={options}
+  value={
+    options.find((option) => option.value === formData.concernedPerson) || {
+      label: formData.concernedPerson,
+      value: formData.concernedPerson,
+    }
+  }
+  onChange={(selectedOption) =>
+    setFormData((prev) => ({
+      ...prev,
+      concernedPerson: selectedOption?.value || "",
+    }))
+  }
+  onCreateOption={(inputValue) => {
+    const newOption = { label: inputValue, value: inputValue };
+    setOptions((prev) => [...prev, newOption]);
+    setFormData((prev) => ({
+      ...prev,
+      concernedPerson: inputValue,
+    }));
+  }}
+  isSearchable
+  placeholder="Search or add person"
+/>
+
         </>
       ),
     },
     ...(formData.productStatus === "repeat"
       ? [{ title: "Stage 2: Packing Material Status", content: <Stage2 formData={formData} handleChange={handleChange} /> }]
-      : formData.productStatus === "new"
-      ? [{ title: "Stage 3: Artwork Status", content: <Stage3 formData={formData} handleChange={handleChange} /> }]
+      : formData.productStatus === "New" //handleFileChange={handleFileChange} artworkFile={artworkFile} formData={formData}
+      ? [{ title: "Stage 3: Artwork Status", content: <Stage3 formData={formData} handleFileChange={handleFileChange} artworkFile={artworkFile} /> }]
       : []),
-    { title: "Stage 4: Order Form", content: <Stage4 formData={formData} handleChange={handleChange} /> },
-    { title: "Stage 5: Receipt Details", content: <Stage5 formData={formData} handleChange={handleChange} /> },
-    { title: "Stage 6: Finished Product Dispatch", content: <Stage6 formData={formData} handleChange={handleChange} /> },
+    { 
+      title: "Stage 4: Order Form",
+      content: <Stage4 formData={formData} setFormData={setFormData} />,
+    },
+    {
+      title: "Stage 5: Receipt Details",
+      content: <Stage5 formData={formData} setFormData={setFormData} />,
+    },
+    {
+      title: "Stage 6: Finished Product Dispatch",
+      content: <Stage6 formData={formData} setFormData={setFormData} />,
+    },
   ];
 
   return (
@@ -385,7 +514,7 @@ const OrderProcessForm = () => {
             className="progress-line"
             style={{ width: `${((currentStep - 1) / (steps.length - 1)) * 100}%` }}
           ></div>
-          {steps.map((_, index) => (
+          {steps.map((step, index) => (
             <div
               key={index}
               className={`step ${currentStep === index + 1 ? "active" : ""}`}
@@ -403,8 +532,8 @@ const OrderProcessForm = () => {
           </div>
           <div className="form-navigation">
             {/* <button onClick={prevStep} disabled={currentStep === 1}>
-              Previous
-            </button> */}
+            Previous
+          </button> */}
             <button onClick={handleSubmit}>Submit</button>
 
           </div>
