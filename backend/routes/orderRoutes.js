@@ -1,13 +1,24 @@
 const express = require("express");
 const router = express.Router();
 const db = require('../config/db'); // Sequelize connection
+const multer = require("multer");
+const path = require("path");
 const { QueryTypes } = require('sequelize');
-const multer = require('multer');
 
 const safeValue = (v) => (v !== undefined && v !== '' ? v : null);
 
-const storage = multer.memoryStorage(); // Or use diskStorage if saving files to disk
-const upload = multer({ storage });
+
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+      cb(null, "uploads/");
+    },
+    filename: function (req, file, cb) {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      cb(null, uniqueSuffix + path.extname(file.originalname));
+    }
+  });
+  const upload = multer({ storage: storage });
+  
 
 // POST new order using Sequelize Model (optional)
 const Order = require("../models/Order");
@@ -53,41 +64,44 @@ router.get("/orders", async(req, res) => {
 });
 
 
-router.get("/concerned-persons", async(req, res) => {
+// router.get("/concerned-persons", async(req, res) => {
+//     try {
+//         const persons = await Order.findAll({
+//             attributes: ['concernedPerson'],
+//             group: ['concernedPerson']
+//         });
+//         res.json(persons);
+//     } catch (err) {
+//         res.status(500).json({ error: "Failed to fetch concerned persons." });
+//     }
+// });
+
+// const { Order, Signup } = require('../models');
+
+// Route: /api/concerned-persons
+
+router.get("/concerned-persons", async (req, res) => {
     try {
-        const persons = await Order.findAll();
-        res.json(persons);
-        const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 10;
-        const offset = (page - 1) * limit;
-
-        const orders = await db.query(
-            `SELECT SQL_CALC_FOUND_ROWS * FROM orders ORDER BY id DESC LIMIT :limit OFFSET :offset`, {
-                replacements: { limit, offset },
-                type: QueryTypes.SELECT,
-                raw: true,
-            }
+        const [results] = await db.query(
+            "SELECT emp_id, fullName FROM signups WHERE type='user'"
         );
-
-        const totalResult = await db.query("SELECT FOUND_ROWS() AS total", {
-            type: QueryTypes.SELECT,
-        });
-        const total = totalResult[0].total;
-
-        res.json({
-            orders,
-            totalPages: Math.ceil(total / limit),
-            currentPage: page,
-        });
+        res.json(results);
     } catch (err) {
+        console.error("Error fetching concerned persons:", err);
         res.status(500).json({ error: "Failed to fetch concerned persons." });
     }
 });
 
+
+
+
 // Save Progress (Insert or Update)
-router.post('/saveProgress', upload.single('artwork'), async(req, res) => {
+router.post('/saveProgress', upload.single("artwork"), async(req, res) => {
     const data = req.body;
     console.log(data)
+
+    const artworkFilename = req.file?.filename || null;
+    console.log(artworkFilename)
 
     const replacements = {
         date: safeValue(data.date),
@@ -119,6 +133,8 @@ router.post('/saveProgress', upload.single('artwork'), async(req, res) => {
         shortExcess: safeValue(data.shortExcess),
         dispatchDate: safeValue(data.dispatchDate),
         shipper: safeValue(data.shipper),
+        stage: safeValue(data.stage),
+        attachApprovedArtwork: safeValue(artworkFilename)
     };
 
     try {
@@ -137,7 +153,8 @@ router.post('/saveProgress', upload.single('artwork'), async(req, res) => {
             innerPacking=:innerPacking, outerPacking=:outerPacking, foilTube=:foilTube, additional=:additional,
             approvedArtwork=:approvedArtwork, reasonIfHold=:reasonIfHold, poNumber=:poNumber, poDate=:poDate,
             innerOrder=:innerOrder, outerOrder=:outerOrder, foilTubeOrder=:foilTubeOrder, additionalOrder=:additionalOrder,
-            receiptDate=:receiptDate, shortExcess=:shortExcess, dispatchDate=:dispatchDate, shipper=:shipper
+            receiptDate=:receiptDate, shortExcess=:shortExcess, dispatchDate=:dispatchDate, shipper=:shipper, stage=:stage,
+            attachApprovedArtwork=:attachApprovedArtwork
           WHERE id=:id`, { replacements }
             );
             res.json({ message: 'Progress updated', id: data.id });
@@ -150,14 +167,14 @@ router.post('/saveProgress', upload.single('artwork'), async(req, res) => {
             innerPacking, outerPacking, foilTube, additional,
             approvedArtwork, reasonIfHold, poNumber, poDate,
             innerOrder, outerOrder, foilTubeOrder, additionalOrder,
-            receiptDate, shortExcess, dispatchDate, shipper
+            receiptDate, shortExcess, dispatchDate, shipper, stage, attachApprovedArtwork
           ) VALUES (
             :date, :brandName, :composition, :packSize, :qty, :rate, :amount, :mrp,
             :clientName, :section, :productStatus, :designer, :concernedPerson,
             :innerPacking, :outerPacking, :foilTube, :additional,
             :approvedArtwork, :reasonIfHold, :poNumber, :poDate,
             :innerOrder, :outerOrder, :foilTubeOrder, :additionalOrder,
-            :receiptDate, :shortExcess, :dispatchDate, :shipper
+            :receiptDate, :shortExcess, :dispatchDate, :shipper, :stage, :attachApprovedArtwork
           )`, { replacements }
             );
 
@@ -212,28 +229,52 @@ router.post('/getBrandDetails', async(req, res) => {
     }
 });
 
-router.get('/orders/by-concerned/:empId', async(req, res) => {
+router.get('/by-concerned/:empId', async (req, res) => {
     const { empId } = req.params;
-
+    console.log("empId:", empId);
+  
     try {
-        const sql = `
-
-      SELECT o.*
-      FROM orders o
-      JOIN SignUps s ON o.concernedPerson = s.fullName
-
+      const sql = `
+        SELECT o.*
+        FROM orders o
+        JOIN SignUps s ON o.concernedPerson = s.emp_id
+        ORDER BY o.id DESC
       `;
-
-        const [results] = await db.query(sql, {
-            replacements: [empId],
-        });
-
-        res.json(results);
+  
+      const [results] = await db.query(sql, {
+        replacements: [empId],
+      });
+  
+      res.json(results);
     } catch (err) {
-        console.error("Error fetching orders for concerned person:", err);
-        res.status(500).json({ message: "Failed to fetch concerned orders" });
+      console.error("Error fetching orders for concerned person:", err);
+      res.status(500).json({ message: "Failed to fetch concerned orders" });
     }
-});
+  });
+  
+  
+router.post("/edit-status", async (req, res) => {
+  const { orderId, status } = req.body;
+  console.log("Editing order", orderId, "at stage", status);
 
+  try {
+    // Fetch order by primary key (id)
+    const order = await Order.findByPk(orderId);
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    // Optionally update the productStatus or other status field:
+    // order.productStatus = status;
+    // await order.save();
+
+    // Send back the full order data
+    res.json({ order });
+  } catch (error) {
+    console.error("Error fetching order:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
 
 module.exports = router;

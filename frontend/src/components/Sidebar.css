@@ -61,3 +61,42 @@ body {
 .menu-link svg {
     font-size: 1.2rem;
 }
+
+.menu-item {
+    list-style: none;
+    margin-bottom: 10px;
+  }
+  
+  .menu-link {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    color: #fff;
+    text-decoration: none;
+  }
+  
+  .menu-link:hover {
+    background-color: #333;
+  }
+  
+  .submenu {
+    margin-top: 5px;
+    margin-left: 15px;
+    padding-left: 10px;
+    border-left: 1px solid #555;
+  }
+  
+  .submenu-item {
+    margin-bottom: 8px;
+  }
+  
+  .submenu-link {
+    color: #ddd;
+    text-decoration: none;
+    font-size: 0.9em;
+  }
+  
+  .submenu-link:hover {
+    color: #fff;
+  }
+  
