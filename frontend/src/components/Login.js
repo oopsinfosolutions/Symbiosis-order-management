@@ -70,6 +70,7 @@ const Login = () => {
           if (userName) {
             sessionStorage.setItem('fullname', userName);
             sessionStorage.setItem('id', json.Emp_id);
+            sessionStorage.setItem('type', json.type)
 
             createNotification('success', `Welcome to your orders`);
 
