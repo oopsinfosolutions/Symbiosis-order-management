@@ -118,7 +118,7 @@ router.post('/saveProgress', upload.single("artwork"), async(req, res) => {
         designer: safeValue(data.designer),
         concernedPerson: safeValue(data.concernedPerson),
         innerPacking: safeValue(data.innerPacking),
-        outerPacking: safeValue(data.outerPacking),
+        OuterPacking: safeValue(data.OuterPacking),
         foilTube: safeValue(data.foilTube),
         additional: safeValue(data.additional),
         approvedArtwork: safeValue(data.approvedArtwork),
@@ -134,7 +134,15 @@ router.post('/saveProgress', upload.single("artwork"), async(req, res) => {
         dispatchDate: safeValue(data.dispatchDate),
         shipper: safeValue(data.shipper),
         stage: safeValue(data.stage),
-        attachApprovedArtwork: safeValue(artworkFilename)
+        attachApprovedArtwork: safeValue(artworkFilename),
+        outerPrinter: safeValue(data.outerPrinter),
+        innerPrinter: safeValue(data.innerPrinter),
+        foilTubePrinter: safeValue(data.foilTubePrinter),
+        additionalPrinter: safeValue(data.additionalPrinter),
+        innersize: safeValue(data.innersize),
+        outersize: safeValue(data.outersize),
+        foiltubesize: safeValue(data.foiltubesize),
+        additionalsize: safeValue(data.additionalsize),
     };
 
     try {
@@ -150,11 +158,14 @@ router.post('/saveProgress', upload.single("artwork"), async(req, res) => {
             date=:date, brandName=:brandName, composition=:composition, packSize=:packSize,
             qty=:qty, rate=:rate, amount=:amount, mrp=:mrp, clientName=:clientName,
             section=:section, productStatus=:productStatus, designer=:designer, concernedPerson=:concernedPerson,
-            innerPacking=:innerPacking, outerPacking=:outerPacking, foilTube=:foilTube, additional=:additional,
+            innerPacking=:innerPacking, OuterPacking=:OuterPacking, foilTube=:foilTube, additional=:additional,
             approvedArtwork=:approvedArtwork, reasonIfHold=:reasonIfHold, poNumber=:poNumber, poDate=:poDate,
             innerOrder=:innerOrder, outerOrder=:outerOrder, foilTubeOrder=:foilTubeOrder, additionalOrder=:additionalOrder,
             receiptDate=:receiptDate, shortExcess=:shortExcess, dispatchDate=:dispatchDate, shipper=:shipper, stage=:stage,
-            attachApprovedArtwork=:attachApprovedArtwork
+            attachApprovedArtwork=:attachApprovedArtwork, innerPrinter=:innerPrinter, outerPrinter=:outerPrinter, 
+            foilTubePrinter=:foilTubePrinter, additionalPrinter=:additionalPrinter, innersize=:innersize, outersize=:outersize,
+            foiltubesize=:foiltubesize, additionalsize=:additionalsize
+
           WHERE id=:id`, { replacements }
             );
             res.json({ message: 'Progress updated', id: data.id });
@@ -164,17 +175,20 @@ router.post('/saveProgress', upload.single("artwork"), async(req, res) => {
                 `INSERT INTO orders (
             date, brandName, composition, packSize, qty, rate, amount, mrp,
             clientName, section, productStatus, designer, concernedPerson,
-            innerPacking, outerPacking, foilTube, additional,
+            innerPacking, OuterPacking, foilTube, additional,
             approvedArtwork, reasonIfHold, poNumber, poDate,
             innerOrder, outerOrder, foilTubeOrder, additionalOrder,
-            receiptDate, shortExcess, dispatchDate, shipper, stage, attachApprovedArtwork
+            receiptDate, shortExcess, dispatchDate, shipper, stage, attachApprovedArtwork,innerPrinter, outerPrinter, 
+            foilTubePrinter, additionalPrinter, innersize, outersize,
+            foiltubesize, additionalsize
           ) VALUES (
             :date, :brandName, :composition, :packSize, :qty, :rate, :amount, :mrp,
             :clientName, :section, :productStatus, :designer, :concernedPerson,
-            :innerPacking, :outerPacking, :foilTube, :additional,
+            :innerPacking, :OuterPacking, :foilTube, :additional,
             :approvedArtwork, :reasonIfHold, :poNumber, :poDate,
             :innerOrder, :outerOrder, :foilTubeOrder, :additionalOrder,
-            :receiptDate, :shortExcess, :dispatchDate, :shipper, :stage, :attachApprovedArtwork
+            :receiptDate, :shortExcess, :dispatchDate, :shipper, :stage, :attachApprovedArtwork, :innerPrinter,
+            :outerPrinter, :foilTubePrinter, :additionalPrinter, :innersize, :outersize, :foiltubesize, :additionalsize
           )`, { replacements }
             );
 
@@ -234,15 +248,14 @@ router.get('/by-concerned/:empId', async (req, res) => {
     console.log("empId:", empId);
   
     try {
-      const sql = `
-        SELECT o.*
-        FROM orders o
-        JOIN SignUps s ON o.concernedPerson = s.emp_id
-        ORDER BY o.id DESC
+        const sql = `
+        SELECT * FROM orders
+        WHERE concernedPerson = :empId
+        ORDER BY id DESC
       `;
-  
+
       const [results] = await db.query(sql, {
-        replacements: [empId],
+        replacements: { empId },
       });
   
       res.json(results);

@@ -1,105 +1,111 @@
 import React from 'react';
 
-const Stage4 = ({ formData, handleChange }) => {
-  const handleViewArtwork = () => {
-    if (formData.artworkUrl) {
-      window.open(formData.artworkUrl, '_blank');
-    } else {
-      alert('No artwork file available.');
-    }
+const Stage5 = ({ formData, handleChange }) => {
+  // Helper to calculate Short/Excess
+  const calculateShortExcess = (orderQty, received) => {
+    const qty = parseInt(orderQty) || 0;
+    const rec = parseInt(received) || 0;
+    return qty - rec;
   };
 
+  // Helper rows
+  const renderSectionRow = (label, qtyKey, receivedKey) => (
+  <tr key={label}>
+    <td className="border px-4 py-2 font-semibold">{label}</td>
+
+    <td className="border px-4 py-2">
+      <input 
+        type="number"
+        name={qtyKey}
+        value={formData[qtyKey] || ''}
+        onChange={handleChange}
+        className="w-full px-2 py-1 border rounded"
+      />
+    </td>
+
+    {/* Received input */}
+    <td className="border px-4 py-2">
+      <input
+        type="number"
+        name={receivedKey}
+        value={formData[receivedKey]}
+        onChange={handleChange}
+        className="w-full px-2 py-1 border rounded"
+      />
+    </td>
+
+    {/* Short / Excess live calculated */}
+    <td className="border px-4 py-2 text-center">
+      {calculateShortExcess(formData[qtyKey], formData[receivedKey])}
+    </td>
+  </tr>
+);
+
+
   return (
-    <div className="space-y-4">
-      {/* Prefilled Fields */}
-      <label>
-        Brand Name:
-        <input type="text" name="brandName" value={formData.brandName || ''} readOnly />
-      </label>
+    <div className="overflow-x-auto p-4">
+      <table className="w-full border border-gray-300 mb-4">
+        <tbody>
+          <tr>
+            <td className="border p-2 font-medium">Brand Name</td>
+            <td className="border p-2">{formData.brandName}</td>
+            <td className="border p-2 font-medium">Client Name</td>
+            <td className="border p-2">{formData.clientName}</td>
+          </tr>
+          <tr>
+            <td className="border p-2 font-medium">Concerned Person</td>
+            <td className="border p-2">{formData.concernedPerson}</td>
+            <td className="border p-2 font-medium">Designer</td>
+            <td className="border p-2">{formData.designer}</td>
+          </tr>
+          <tr>
+            <td className="border p-2 font-medium">Pack Size</td>
+            <td className="border p-2">{formData.packSize}</td>
+            <td className="border p-2 font-medium">PO Number</td>
+            <td className="border p-2">
+              <input
+                type="text"
+                name="poNumber"
+                value={formData.poNumber}
+                onChange={handleChange}
+                className="w-full border rounded px-2 py-1"
+              />
+            </td>
+          </tr>
+          <tr>
+            <td className="border p-2 font-medium">PO Date</td>
+            <td className="border p-2" colSpan={3}>
+              <input
+                type="date"
+                name="poDate"
+                value={formData.poDate ? formData.poDate.substring(0, 10) : ""}
+                onChange={handleChange}
+                className="w-full border rounded px-2 py-1"
+              />
+            </td>
+          </tr>
+        </tbody>
+      </table>
 
-      <label>
-        Client Name:
-        <input type="text" name="clientName" value={formData.clientName || ''} readOnly />
-      </label>
-
-      <label>
-        Concerned Person:
-        <input type="text" name="concernedPerson" value={formData.concernedPerson || ''} readOnly />
-      </label>
-
-      <label>
-        Designer:
-        <input type="text" name="designer" value={formData.designer || 'SYMBIOSIS / NK / TEJAS'} readOnly />
-      </label>
-
-      <label>
-        Pack Size:
-        <input type="text" name="packSize" value={formData.packSize || ''} readOnly />
-      </label>
-
-
-      {/* INNER Section */}
-      <h3>INNER</h3>
-      <label>
-        Order Qty:
-        <input type="number" name="innerOrderQty" value={formData.innerOrderQty || ''} onChange={handleChange} />
-      </label>
-      <label>
-        Received:
-        <input type="text" name="innerSize" value={formData.innerSize || ''} onChange={handleChange} />
-      </label>
-      <label>
-      Short / Excess:
-        <input type="text" name="innerPrinter" value={formData.innerPrinter || ''} onChange={handleChange} />
-      </label>
-
-      {/* OUTER Section */}
-      <h3>OUTER</h3>
-      <label>
-        Order Qty:
-        <input type="number" name="outerOrderQty" value={formData.outerOrderQty || ''} onChange={handleChange} />
-      </label>
-      <label>
-        Received:
-        <input type="text" name="outerSize" value={formData.outerSize || ''} onChange={handleChange} />
-      </label>
-      <label>
-      Short / Excess:
-        <input type="text" name="outerPrinter" value={formData.outerPrinter || ''} onChange={handleChange} />
-      </label>
-
-      {/* FOIL / TUBE Section */}
-      <h3>FOIL / TUBE</h3>
-    
-      <label>
-        Order Qty:
-        <input type="number" name="foilTubeOrderQty" value={formData.foilTubeOrderQty || ''} onChange={handleChange} />
-      </label>
-      <label>
-        Received:
-        <input type="text" name="foilTubeSize" value={formData.foilTubeSize || ''} onChange={handleChange} />
-      </label>
-      <label>
-      Short / Excess:
-        <input type="text" name="foilTubePrinter" value={formData.foilTubePrinter || ''} onChange={handleChange} />
-      </label>
-
-      {/* ADDITIONAL Section */}
-      <h3>ADDITIONAL (IF ANY)</h3>
-      <label>
-        Order Qty:
-        <input type="number" name="additionalOrderQty" value={formData.additionalOrderQty || ''} onChange={handleChange} />
-      </label>
-      <label>
-        Received:
-        <input type="text" name="additionalSize" value={formData.additionalSize || ''} onChange={handleChange} />
-      </label>
-      <label>
-      Short / Excess:
-        <input type="text" name="additionalPrinter" value={formData.additionalPrinter || ''} onChange={handleChange} />
-      </label>
+      <h2 className="text-lg font-bold mb-4">Packing Material Receipt Details</h2>
+      <table className="min-w-full border border-gray-300 text-sm">
+        <thead className="bg-gray-100">
+          <tr>
+            <th className="border px-4 py-2">Section</th>
+            <th className="border px-4 py-2">Order Qty</th>
+            <th className="border px-4 py-2">Received</th>
+            <th className="border px-4 py-2">Short / Excess</th>
+          </tr>
+        </thead>
+        <tbody>
+          {renderSectionRow('INNER', 'innerOrder', 'innerReceived')}
+          {renderSectionRow('OUTER', 'outerOrder', 'outerReceived')}
+          {renderSectionRow('FOIL / TUBE', 'foilTubeOrder', 'foilTubeReceived')}
+          {renderSectionRow('ADDITIONAL', 'additionalOrder', 'additionalReceived')}
+        </tbody>
+      </table>
     </div>
   );
 };
 
-export default Stage4;
+export default Stage5;

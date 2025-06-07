@@ -11,14 +11,16 @@ app.use(express.json());
 
 const orderRoutes = require("./routes/orderRoutes");
 const concernedPersonsRoute = require('./routes/concernedPerson');
-
+const printerRoutes = require('./routes/printerRoutes');
+const sectionRoutes = require('./routes/sectionRoutes');
 
 // Mount routes
 app.use('/api', orderRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/concerned-persons', concernedPersonsRoute);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
+app.use('/api', printerRoutes);
+app.use('/api', sectionRoutes);
 
 // Signup
 app.post('/Signup', async (req, res) => {

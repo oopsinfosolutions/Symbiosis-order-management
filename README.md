@@ -2,6 +2,10 @@
 
 source code on git : https://github.com/oopsinfosolutions/Symbiosis-order-management
 
+#Create db:
+CREATE DATABASE order_process;
+USE order_process;
+
 #create orders table query on mysql: 
 CREATE TABLE orders (
   id INT(11) NOT NULL AUTO_INCREMENT,
@@ -43,7 +47,7 @@ CREATE TABLE orders (
 );
 
 #create signups table query:
-CREATE TABLE employees (
+CREATE TABLE signups (
   id INT(11) NOT NULL AUTO_INCREMENT,
   fullName VARCHAR(255) NOT NULL,
   email VARCHAR(255) NOT NULL,

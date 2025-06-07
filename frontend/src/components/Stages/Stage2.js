@@ -34,8 +34,8 @@ const Stage2 = ({ formData, handleChange }) => {
         Outer Packing:
         <input
           type="text"
-          name="outerPacking"
-          value={formData.outerPacking}
+          name="OuterPacking"
+          value={formData.OuterPacking}
           onChange={handleChange}
         />
       </label>
@@ -45,6 +45,15 @@ const Stage2 = ({ formData, handleChange }) => {
           type="text"
           name="foilTube"
           value={formData.foilTube}
+          onChange={handleChange}
+        />
+      </label>
+      <label>
+        Additional:
+        <input
+          type="text"
+          name="additional"
+          value={formData.additional}
           onChange={handleChange}
         />
       </label>

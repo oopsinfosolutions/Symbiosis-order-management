@@ -5,6 +5,10 @@ import "../../components/Sidebar.css";
 
 const Nav = () => {
   const menuItems = [
+    { name: "All Orders", link: "/view-all-orders" },
+    { name: "Sections", link: "/sections" },
+    { name: "Printers", link: "/printers" },
+
     { name: "Add Users", link: "/Addusers" },
     { name: "Update Users", link: "/Updateusers" },
     { name: "List Users", link: "/Listusers" },
