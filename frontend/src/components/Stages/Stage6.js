@@ -141,8 +141,8 @@ const Stage6 = ({ formData, handleChange, handleBrandChange, handleBrandCreate, 
           <td className="border p-2">
             <input
               type="text"
-              name="productType"
-              value={formData.productType}
+              name="section"
+              value={formData.section}
               onChange={handleChange}
               className="w-full border p-1"
             />
