@@ -48,6 +48,7 @@ CREATE TABLE orders (
 
 #create signups table query:
 CREATE TABLE signups (
+
   id INT(11) NOT NULL AUTO_INCREMENT,
   fullName VARCHAR(255) NOT NULL,
   email VARCHAR(255) NOT NULL,
