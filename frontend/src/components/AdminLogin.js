@@ -79,6 +79,7 @@ const AdminLogin = () => {
             sessionStorage.setItem("fullname", adminName);
             sessionStorage.setItem("email", json.email);
             sessionStorage.setItem("type", json.type);
+            sessionStorage.setItem("id", "admin")
 
             createNotification('success', `Welcome, Admin ${adminName}`);
             const redirectPath = '/Addusers';

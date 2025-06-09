@@ -64,7 +64,7 @@ const OrderProcessForm = () => {
     designer: "",
     concernedPerson: "",
     innerPacking: "",
-    outerPacking: "",
+    OuterPacking: "",
     foilTube: "",
     additional: "",
     approvedArtwork: "approved",
@@ -80,19 +80,28 @@ const OrderProcessForm = () => {
     dispatchDate: "",
     qtyDispatch: "",
     shipper: "",
+    innerPrinter: "",
+    outerPrinter: "",
+    foilTubePrinter: "",
+    additionalPrinter: "",
+    innersize: "",
+    outersize: "",
     // stage: ""
   });
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-  
-    if (!['image/jpeg', 'image/jpg'].includes(file.type)) {
-      alert('Only JPEG files are allowed.');
+
+    if (!['image/jpeg', 'image/jpg', 'image/png'].includes(file.type)) {
+      alert('Only JPEG or PNG files allowed.');
       return;
     }
-    console.log(file)
-  
+    if (file.size > 2 * 1024 * 1024) {
+      alert("File too large. Max 2MB allowed.");
+      return;
+    }
+
     const previewUrl = URL.createObjectURL(file);
     setArtworkFile(file); // <-- This is important
     setFormData((prev) => ({
@@ -200,7 +209,7 @@ const OrderProcessForm = () => {
 
   const requiredFieldsByStep = {
     1: ["date", "brandName", "composition", "packSize", "qty", "rate", "mrp", "clientName", "section", "productStatus", "concernedPerson"],
-    2: ["innerPacking", "outerPacking", "foilTube", "additional"],
+    2: ["innerPacking", "OuterPacking", "foilTube", "additional"],
     3: ["approvedArtwork"],
     4: ["poNumber", "poDate", "innerOrder", "outerOrder", "foilTubeOrder", "additionalOrder"],
     5: ["receiptDate", "shortExcess"],
@@ -222,6 +231,7 @@ const OrderProcessForm = () => {
   
     try {
       const data = new FormData();
+      formData.amount = amount;
       Object.entries(formData).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
           data.append(key, typeof value === 'object' ? JSON.stringify(value) : value);
@@ -273,6 +283,7 @@ const OrderProcessForm = () => {
 
     try {
       const data = new FormData();
+      data.amount = amount;
       Object.entries(formData).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
           data.append(key, typeof value === 'object' ? JSON.stringify(value) : value);
@@ -282,6 +293,7 @@ const OrderProcessForm = () => {
       if (artworkFile) data.append("artwork", artworkFile);
     
       data.set("stage", currentStep);
+      data.set("amount", amount);
     
       const res = await axios.post("http://localhost:5000/api/saveProgress", data, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -291,7 +303,7 @@ const OrderProcessForm = () => {
       navigate("/view-orders");
     } catch (err) {
       console.error("Submission failed:", err);
-      alert("Failed to submit order.");
+      alert("Failed to submit order."); 
     }
     
   }
@@ -490,15 +502,16 @@ const OrderProcessForm = () => {
       : []),
     { 
       title: "Stage 4: Order Form",
-      content: <Stage4 formData={formData} setFormData={setFormData} />,
+      content: <Stage4 formData={formData} setFormData={setFormData} handleChange={handleChange} />
     },
     {
       title: "Stage 5: Receipt Details",
-      content: <Stage5 formData={formData} setFormData={setFormData} />,
+      content: <Stage5 formData={formData} setFormData={setFormData} handleChange={handleChange}/>,
     },
     {
       title: "Stage 6: Finished Product Dispatch",
-      content: <Stage6 formData={formData} setFormData={setFormData} />,
+      content: <Stage6 formData={formData} setFormData={setFormData} handleBrandChange={handleBrandChange} 
+      handleBrandCreate={handleBrandCreate}  brands={brands} amount={amount}/>,
     },
   ];
 

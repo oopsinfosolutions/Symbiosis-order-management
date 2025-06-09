@@ -45,7 +45,7 @@ async function importExcelData() {
           designer: row["Designer"],
           concernedPerson: row["PERSON NAMES"],
           innerPacking: row["Inner Packing"],
-          outerPacking: row["Outer Packing"],
+          OuterPacking: row["Outer Packing"],
           foilTube: row["Foil/Tube"],
           additional: row["Additional"],
         //  import till here only

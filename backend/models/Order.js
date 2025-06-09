@@ -44,7 +44,7 @@ const Order = sequelize.define('Order', {
   // Stage 2: Packing Material Status
   concernedPerson: DataTypes.STRING,
   innerPacking: DataTypes.STRING,
-  outerPacking: DataTypes.STRING,
+  OuterPacking: DataTypes.STRING,
   foilTube: DataTypes.STRING,
   additional: DataTypes.STRING,
 
@@ -72,8 +72,40 @@ const Order = sequelize.define('Order', {
     type: DataTypes.INTEGER,
     defaultValue: 0,
   },
+  innerPrinter: {
+    type: DataTypes.STRING,
+    defaultValue: 0,
+  },
+  outerPrinter: {
+    type: DataTypes.STRING,
+    defaultValue: 0,
+  },
+  foilTubePrinter: {
+    type: DataTypes.STRING,
+    defaultValue: 0,
+  },
+  additionalPrinter: {
+    type: DataTypes.STRING,
+    defaultValue: 0,
+  },
 
   // Stage 5: Receipt Details
+  innerReceived: {
+    type: DataTypes.STRING,
+    defaultValue: 0,
+  },
+  outerReceived: {
+    type: DataTypes.STRING,
+    defaultValue: 0,
+  },
+  foilTubeReceived: {
+    type: DataTypes.STRING,
+    defaultValue: 0,
+  },
+  additionalReceived: {
+    type: DataTypes.STRING,
+    defaultValue: 0,
+  },
   receiptDate: DataTypes.DATE,
   shortExcess: {
     type: DataTypes.ENUM('Short', 'Excess', 'OK'),

@@ -13,6 +13,7 @@ import ConcernedPersonDashboard from "./components/ConcernedPerson/ConcernedPErs
 import ConcernedOrders from "./components/ConcernedPerson/ConcernedOrders";
 import ConcernedPersonsList from "./components/Admin/ConcernedPersonsList";
 import { AuthProvider } from "./context/AuthContext";
+import './index.css';
 
 function App() {
   return (
@@ -29,6 +30,9 @@ function App() {
           <Route path="/Updateusers" element={<UpdateUsers />} />
           <Route path="/Adminlogin" element={<AdminLogin />} />
           <Route path="/view-orders/:empId" element={<ConcernedOrders />} />
+          <Route path="/view-all-orders" element={<ConcernedOrders />} />
+          <Route path="/printers" element={<ConcernedOrders />} />
+          <Route path="/sections" element={<ConcernedOrders />} />
           <Route path="/orders/:empId" element={<ConcernedOrders />} />
           <Route path="/employee-dashboard" element={<ConcernedPersonDashboard />} />
           <Route path="/ConcernedPersonsList" element={<ConcernedPersonsList />} />

@@ -1,219 +1,227 @@
-import React from 'react';
-import { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import CreatableSelect from 'react-select/creatable';
+import axios from 'axios';
+import { Download, X } from 'lucide-react';
 
 const Stage4 = ({ formData, handleChange }) => {
-    console.log(formData)
-    
-    const [showArtwork, setShowArtwork] = useState(false);
+  const [showArtwork, setShowArtwork] = useState(false);
+  const [printerOptions, setPrinterOptions] = useState([]);
 
-    const handleViewArtwork = () => {
-        console.log(formData.attachApprovedArtwork)
-      if (formData.attachApprovedArtwork) {
-        setShowArtwork(true);
-      } else {
-        alert('No artwork file available.');
-      }
-    };
+  console.log(formData)
+
+useEffect(() => {
+  axios.get("http://localhost:5000/api/printers")
+    .then((res) => {
+      const options = res.data.map((p) => ({ label: p.name, value: p.name }));
+      setPrinterOptions(options);
+    })
+    .catch((err) => console.error("Failed to fetch printers:", err));
+}, []);
+
+
+  const handleViewArtwork = () => {
+    if (formData.attachApprovedArtwork) {
+      setShowArtwork(true);
+    } else {
+      alert('No artwork file available.');
+    }
+  };
+
+  const handleCloseModal = () => setShowArtwork(false);
+
+  const handleDownload = async () => {
+    try {
+      const fileUrl = `http://localhost:5000/uploads/${formData.attachApprovedArtwork}`;
+      const response = await fetch(fileUrl);
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = formData.attachApprovedArtwork;
+      a.click();
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+      console.error("Download failed:", error);
+    }
+  };
+
+  const renderSection = (title, statusField, quantityField, receivedField, printerField) => (
+    <div className="mt-8">
+      <h4 className="text-lg font-semibold mb-2">{title}</h4>
+      <table className="w-full border border-gray-300">
+        <thead className="bg-gray-100 text-left">
+          <tr>
+            <th className="border p-2">Show Status</th>
+            <th className="border p-2">Order Qty</th>
+            <th className="border p-2">Size</th>
+            <th className="border p-2">Printer</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td className="border p-2">
+              <input
+                type="text"
+                name={`${statusField}`}
+                value={formData[`${statusField}`]}
+                onChange={handleChange}
+                className="w-full border rounded px-2 py-1"
+              />
+            </td>
+            <td className="border p-2">
+              <input
+                type="number"
+                name={`${quantityField}`}
+                value={formData[`${quantityField}`]}
+                onChange={handleChange}
+                className="w-full border rounded px-2 py-1"
+              />
+            </td>
+            <td className="border p-2">
+              <input
+                type="text"
+                name={`${receivedField}`}
+                value={formData[`${receivedField}`]}
+                onChange={handleChange}
+                className="w-full border rounded px-2 py-1"
+              />
+            </td>
+           <td className="border p-2">
   
-    const handleCloseModal = () => {
-      setShowArtwork(false);
-    };
+<CreatableSelect
+  isClearable
+  options={printerOptions}
+  value={
+    formData[`${printerField}`]
+      ? { label: formData[`${printerField}`], value: formData[`${printerField}`] }
+      : null
+  }
+  onChange={(selectedOption) => {
+    handleChange({
+      target: {
+        name: `${printerField}`,
+        value: selectedOption ? selectedOption.value : '',
+      },
+    });
+  }}
+  onCreateOption={async (inputValue) => {
+    try {
+      await axios.post('http://localhost:5000/api/printers/add', { name: inputValue });
+      const newOption = { label: inputValue, value: inputValue };
+      setPrinterOptions((prev) => [...prev, newOption]);
+      handleChange({
+        target: {
+          name: `${printerField}`,
+          value: inputValue,
+        },
+      });
+    } catch (error) {
+      console.error('Failed to add printer:', error);
+      alert('Error adding new printer.');
+    }
+  }}
+  placeholder="Select or create printer"
+/>
+
+</td>
+
+
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  );
 
   return (
-    <div className="space-y-4">
-      {/* Prefilled Fields */}
-      <label>
-        Brand Name:
-        <input type="text" name="brandName" value={formData.brandName || ''} readOnly />
-      </label>
+    <div className="space-y-6">
+      <h2 className="text-xl font-bold mb-4">Packing Material Order Form</h2>
 
-      <label>
-        Client Name:
-        <input type="text" name="clientName" value={formData.clientName || ''} readOnly />
-      </label>
+      <table className="w-full border border-gray-300">
+        <tbody>
+          <tr>
+            <td className="border p-2 font-medium">Brand Name</td>
+            <td className="border p-2">{formData.brandName}</td>
+            <td className="border p-2 font-medium">Client Name</td>
+            <td className="border p-2">{formData.clientName}</td>
+          </tr>
+          <tr>
+            <td className="border p-2 font-medium">Concerned Person</td>
+            <td className="border p-2">{formData.concernedPerson}</td>
+            <td className="border p-2 font-medium">Designer</td>
+            <td className="border p-2">{formData.designer}</td>
+          </tr>
+          <tr>
+            <td className="border p-2 font-medium">Pack Size</td>
+            <td className="border p-2">{formData.packSize}</td>
+            <td className="border p-2 font-medium">View Artwork</td>
+            <td className="border p-2">
+              <button
+                type="button"
+                onClick={handleViewArtwork}
+                className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
+              >
+                View Artwork
+              </button>
+            </td>
+          </tr>
+          <tr>
+            <td className="border p-2 font-medium">PO Number</td>
+            <td className="border p-2">
+              <input
+                type="text"
+                name="poNumber"
+                value={formData.poNumber}
+                onChange={handleChange}
+                className="w-full border rounded px-2 py-1"
+              />
+            </td>
+            <td className="border p-2 font-medium">PO Date</td>
+            <td className="border p-2">
+              <input
+                type="date"
+                name="poDate"
+                value={formData.poDate ? formData.poDate.substring(0, 10) : ""}
+                onChange={handleChange}
+                className="w-full border rounded px-2 py-1"
+              />
+            </td>
+          </tr>
+        </tbody>
+      </table>
 
-      <label>
-        Concerned Person:
-        <input type="text" name="concernedPerson" value={formData.concernedPerson || ''} readOnly />
-      </label>
-
-      <label>
-        Designer:
-        <input type="text" name="designer" value={formData.designer} readOnly />
-      </label>
-
-      <label>
-        Pack Size:
-        <input type="text" name="packSize" value={formData.packSize || ''} readOnly />
-      </label>
-
-      {/* View Artwork */}
-      <label>
-        View Artwork:
-        <button
-        type="button"
-        onClick={handleViewArtwork}
-        className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-      >
-        View Artwork
-      </button>
-
-      {/* Modal */}
+      {/* Artwork Modal */}
       {showArtwork && (
-                  <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
-                      <div className="bg-white p-4 rounded shadow-xl relative">
-                          <img
-                              src={`http://localhost:5000/uploads/${formData.attachApprovedArtwork}`} 
-                              alt="Artwork Preview"
-                              className="max-w-full max-h-[80vh] rounded"
-                          />
-                          <button
-                              onClick={handleCloseModal}
-                              className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
-                          >
-              Close
-            </button>
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+          <div className="bg-white p-4 rounded shadow-xl relative max-w-2xl">
+            <img
+              src={`http://localhost:5000/uploads/${formData.attachApprovedArtwork}`}
+              alt="Artwork Preview"
+              className="w-full h-auto rounded"
+            />
+            <div className="flex justify-end mt-4 space-x-2">
+              <button
+                onClick={handleDownload}
+                className="flex items-center gap-1 bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
+              >
+                <Download className="w-4 h-4" /> Download
+              </button>
+              <button
+                onClick={handleCloseModal}
+                className="flex items-center gap-1 bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+              >
+                <X className="w-4 h-4" /> Close
+              </button>
+            </div>
           </div>
         </div>
-    )}
-      </label>
+      )}
 
-      {/* PO Details */}
-      <label>
-        PO Number:
-        <input type="text" name="poNumber" value={formData.poNumber} onChange={handleChange} />
-      </label>
+      {renderSection("INNER","innerPacking", "innerOrder", "innersize", "innerPrinter")}
+      {renderSection("OUTER", "OuterPacking", "outerOrder", "outersize", "outerPrinter")}
+      {renderSection("FOIL / TUBE", "foilTube", "foilTubeOrder", "foilsize", "foilTubePrinter")}
+      {renderSection("ADDITIONAL (IF ANY)", "additional", "additionalOrder", "additionalsize", "additionalPrinter")}
 
-      <label>
-        PO Date:
-        <input type="date" name="poDate" value={formData.poDate} onChange={handleChange} />
-      </label>
-
-      {/* INNER Section
-      <h3>INNER</h3>
-      <label>
-        Show Status:
-        <input type="text" name="innerStatus" value={formData.innerStatus} />
-      </label>
-      <label>
-        Order Qty:
-        <input type="number" name="innerOrderQty" value={formData.innerOrderQty} onChange={handleChange} />
-      </label>
-      <label>
-        Size:
-        <input type="text" name="innerSize" value={formData.innerSize} onChange={handleChange} />
-      </label>
-      <label>
-        Printer:
-        <input type="text" name="innerPrinter" value={formData.innerPrinter || ''} onChange={handleChange} />
-      </label> */}
-
-      {/* INNER Section */}
-      <div className="inner-style">
-
-<h3 className="text-lg font-semibold mt-6">INNER</h3>
-  <label className="flex flex-col">
-    Show Status:
-    <input
-      type="text"
-      name="innerStatus"
-      value={formData.innerStatus}
-      onChange={handleChange}
-      className="border px-3 py-1 rounded"
-    />
-  </label>
-
-  <label className="flex flex-col">
-    Order Qty:
-    <input
-      type="number"
-      name="innerOrderQty"
-      value={formData.innerOrderQty}
-      onChange={handleChange}
-      className="border px-3 py-1 rounded"
-    />
-  </label>
-
-  <label className="flex flex-col">
-    Size:
-    <input
-      type="text"
-      name="innerSize"
-      value={formData.innerSize}
-      onChange={handleChange}
-      className="border px-3 py-1 rounded"
-    />
-  </label>
-
-  <label className="flex flex-col">
-    Printer:
-    <input
-      type="text"
-      name="innerPrinter"
-      value={formData.innerPrinter}
-      onChange={handleChange}
-      className="border px-3 py-1 rounded"
-    />
-  </label>
-</div>
-
-
-      {/* OUTER Section */}
-      <h3>OUTER</h3>
-      <label>
-        Show Status:
-        <input type="text" name="outerStatus" value={formData.outerStatus} />
-      </label>
-      <label>
-        Order Qty:
-        <input type="number" name="outerOrderQty" value={formData.outerOrderQty} onChange={handleChange} />
-      </label>
-      <label>
-        Size:
-        <input type="text" name="outerSize" value={formData.outerSize} onChange={handleChange} />
-      </label>
-      <label>
-        Printer:
-        <input type="text" name="outerPrinter" value={formData.outerPrinter} onChange={handleChange} />
-      </label>
-
-      {/* FOIL / TUBE Section */}
-      <h3>FOIL / TUBE</h3>
-      <label>
-        Show Status:
-        <input type="text" name="foilTubeStatus" value={formData.foilTubeStatus} />
-      </label>
-      <label>
-        Order Qty:
-        <input type="number" name="foilTubeOrderQty" value={formData.foilTubeOrderQty} onChange={handleChange} />
-      </label>
-      <label>
-        Size:
-        <input type="text" name="foilTubeSize" value={formData.foilTubeSize} onChange={handleChange} />
-      </label>
-      <label>
-        Printer:
-        <input type="text" name="foilTubePrinter" value={formData.foilTubePrinter} onChange={handleChange} />
-      </label>
-
-      {/* ADDITIONAL Section */}
-      <h3>ADDITIONAL (IF ANY)</h3>
-      <label>
-        Show Status:
-        <input type="text" name="additionalStatus" value={formData.additionalStatus} />
-      </label>
-      <label>
-        Order Qty:
-        <input type="number" name="additionalOrderQty" value={formData.additionalOrderQty} onChange={handleChange} />
-      </label>
-      <label>
-        Size:
-        <input type="text" name="additionalSize" value={formData.additionalSize} onChange={handleChange} />
-      </label>
-      <label>
-        Printer:
-        <input type="text" name="additionalPrinter" value={formData.additionalPrinter} onChange={handleChange} />
-      </label>
     </div>
   );
 };
