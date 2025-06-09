@@ -2,14 +2,19 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "../styles/ViewOrders.css";
 import SideNav from "./SideNav";
+import Nav from "./Admin/Nav";
 import { useNavigate } from "react-router-dom";
 
 const ViewOrders = () => {
   const [orders, setOrders] = useState([]);
+  // const { empId } = useParams();
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const limit = 20; // Orders per page
   const navigate = useNavigate();
+  const [statusFilter, setStatusFilter] = useState("");
+
+  // const userRole = empId;
 
   const handleEditOrder = (order) => {
     const { id, productStatus } = order;
@@ -44,9 +49,25 @@ const ViewOrders = () => {
       });
   };
   
-  
+//   const filteredOrders = orders
+//   .filter(order =>
+//     [order.brandName, order.date, order.qty, order.rate, order.amount, order.productStatus]
+//       .some(field =>
+//         field?.toString().toLowerCase().includes(searchTerm.toLowerCase())
+//       )
+//   )
+//   .filter(order =>
+//     !isNaN(stageFilter) ? order.stage === stageFilter : true
+//   ).filter(order => {
+//   const status = getStatus(order.date, order.productStatus, order.stage, order.poDate).label.toLowerCase();
+//   if (statusFilter === "overdue") return status === "overdue";
+//   if (statusFilter === "dueToday") return status === "due today";
+//   return true;
+// });
+
 
   useEffect(() => {
+    
     axios
       .get(`http://localhost:5000/api/orders?page=${page}&limit=${limit}`)
       .then((res) => {
@@ -69,7 +90,9 @@ const ViewOrders = () => {
   return (
     <div className="layout-container">
       <div className="sidebar-container">
-        <SideNav/>
+        {/* {userRole === "admin" ? <Nav /> : */}
+         <SideNav />
+         {/* } */}
       </div>
       <div className="form-section">
     <div className="orders-container">
@@ -83,7 +106,21 @@ const ViewOrders = () => {
             <th>Client</th>
             <th>Quantity</th>
             <th>MRP</th>
-            <th>Status</th>
+            {/* <th>Status</th> */}
+            <th>
+            <div className="flex flex-col">
+    <span>Status</span>
+    <select
+      value={statusFilter}
+      onChange={(e) => setStatusFilter(e.target.value)}
+      className="mt-1 text-sm border rounded px-1 py-1"
+    >
+      <option value="">All</option>
+      <option value="overdue">Overdue</option>
+      <option value="dueToday">Due Today</option>
+    </select>
+  </div>
+</th>
             <th>Actions</th>
           </tr>
         </thead>

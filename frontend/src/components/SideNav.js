@@ -1,16 +1,20 @@
-import React, { useState, useContext } from "react";
-import { Link } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import "./Sidebar.css";
-// import ReactDOM from "react-dom";
-
 
 const SideNav = () => {
-  const { empId } = useAuth();
   const [openMenu, setOpenMenu] = useState(null);
+  const navigate = useNavigate();
+
+  const empId = sessionStorage.getItem("id");
 
   const toggleMenu = (menuName) => {
     setOpenMenu(openMenu === menuName ? null : menuName);
+  };
+
+  const handleLogout = () => {
+    sessionStorage.clear();
+    navigate("/login");
   };
 
   const stages = [
@@ -19,26 +23,22 @@ const SideNav = () => {
     { stage: 3, label: "Stage 3: Artwork Status" },
     { stage: 4, label: "Stage 4: Order Form" },
     { stage: 5, label: "Stage 5: Receipt Details" },
-    { stage: 6, label: "Stage 6: Finished Product Dispatch" },
   ];
 
   const menuItems = [
     { name: "Add Product", link: "/multiform" },
     {
-      name: "Your Orders",
+      name: "My Orders",
+      link: `/view-orders/${empId}`,
       submenu: stages.map(({ stage, label }) => ({
         name: label,
         link: `/view-orders/${empId}?stage=${stage}`,
       })),
     },
-    {
-      name: "All Orders",
-      submenu: stages.map(({ stage, label }) => ({
-        name: label,
-        link: `/view-orders?stage=${stage}`,
-      })),
-    },
-    { name: "Logout", link: "#" },
+    { name: "Printers", link: "/printers" },
+    { name: "Sections", link: "/sections" },
+    { name: "All Orders", link: `/view-orders` },
+    { name: "Logout", action: handleLogout }, // No link, uses action
   ];
 
   return (
@@ -71,10 +71,18 @@ const SideNav = () => {
                   </ul>
                 )}
               </>
-            ) : (
-              <a href={item.link} className="menu-link">
+            ) : item.action ? (
+              <button
+                onClick={item.action}
+                className="menu-link text-left w-full bg-transparent border-none outline-none cursor-pointer"
+                style={{ padding: 0 }}
+              >
                 <span>{item.name}</span>
-              </a>
+              </button>
+            ) : (
+              <Link to={item.link} className="menu-link">
+                <span>{item.name}</span>
+              </Link>
             )}
           </li>
         ))}

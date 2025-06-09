@@ -59,7 +59,7 @@ const ConcernedPersonsList = () => {
         >
           <h2>Details of {selectedPerson.concernedPerson}</h2>
           <p><strong>Inner Packing:</strong> {selectedPerson.innerPacking || "N/A"}</p>
-          <p><strong>Outer Packing:</strong> {selectedPerson.outerPacking || "N/A"}</p>
+          <p><strong>Outer Packing:</strong> {selectedPerson.OuterPacking || "N/A"}</p>
           <p><strong>Foil Tube:</strong> {selectedPerson.foilTube || "N/A"}</p>
           <p><strong>Additional Notes:</strong> {selectedPerson.additional || "N/A"}</p>
           <p><strong>Product Status:</strong> {selectedPerson.productStatus}</p>
