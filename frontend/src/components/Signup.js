@@ -10,10 +10,10 @@ function Signup() {
     phone: "",
     password: "",
     confirmPassword: "",
+    type: "" // default is empty, forces user to pick
   });
 
   const navigate = useNavigate();
-
 
   const generateEmpId = async (fullName) => {
     try {
@@ -49,31 +49,40 @@ function Signup() {
       return;
     }
 
+    if (!formData.type) {
+      alert("Please select a user type.");
+      return;
+    }
+
     try {
       const Emp_id = await generateEmpId(formData.fullName);
       const signupData = { ...formData, Emp_id };
+      console.log(signupData);
 
       const response = await axios.post('http://localhost:5000/Signup', signupData);
       alert(response.data.message);
-      if (response.data.success) {
-        sessionStorage.setItem(
-          'signupMessage',
-          `Your Employee ID is ${Emp_id}. Please save it along with your password for future use.`
-        );        
-        navigate("/Login");
-      }
-    } catch (error) {
+    if (response.data.success) {
+  sessionStorage.setItem(
+    'signupMessage',
+    `Your Employee ID is ${Emp_id}. Please save it along with your password for future use.`
+  );
+
+  
+    navigate("/Login"); 
+  
+}
+}catch (error) {
       console.error("Signup error:", error.response?.data || error.message);
       alert("Signup failed. Please try again.");
     }
   };
 
   return (
-      <div className="login-container">
+    <div className="login-container">
       <div className="signup-form2">
         <h1>Sign up Details</h1>
         <form id="signupForm2" onSubmit={handleSignup}>
-          <label htmlFor="fullName">Full name</label>
+          <label htmlFor="fullName">Full Name</label>
           <input
             type="text"
             id="fullName"
@@ -82,6 +91,7 @@ function Signup() {
             onChange={handleChange}
             required
           />
+
           <label htmlFor="email">Email</label>
           <input
             type="email"
@@ -91,6 +101,7 @@ function Signup() {
             onChange={handleChange}
             required
           />
+
           <label htmlFor="phone">Phone Number</label>
           <input
             type="tel"
@@ -100,6 +111,7 @@ function Signup() {
             onChange={handleChange}
             required
           />
+
           <label htmlFor="password">Password</label>
           <input
             type="password"
@@ -109,6 +121,7 @@ function Signup() {
             onChange={handleChange}
             required
           />
+
           <label htmlFor="confirmPassword">Confirm Password</label>
           <input
             type="password"
@@ -118,20 +131,31 @@ function Signup() {
             onChange={handleChange}
             required
           />
+
+          <label htmlFor="type">User Type</label>
+          <select
+            id="type"
+            value={formData.type}
+            onChange={handleChange}
+            required
+          >
+            <option value="">Select Role</option>
+            <option value="employee">Employee</option>
+            <option value="designer">Designer</option>
+          </select>
+
           <button type="submit" className="btn primary">Sign Up</button>
         </form>
+
         <div className="login-link">
-          <p>
-            Already have an account? <a href="/Login">Log in</a>
-          </p>
+          <p>Already have an account? <a href="/Login">Log in</a></p>
         </div>
+
         <div className="login-link">
-          <p>
-            Admin? <a href="/AdminLogin">Your Log in</a>
-          </p>
+          <p>Admin? <a href="/AdminLogin">Your Log in</a></p>
         </div>
       </div>
-      </div>
+    </div>
   );
 }
 
