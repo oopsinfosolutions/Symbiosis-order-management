@@ -24,16 +24,17 @@ app.use('/api', sectionRoutes);
 
 // Signup
 app.post('/Signup', async (req, res) => {
-  const { fullName, email, Emp_id, phone, password } = req.body;
+  const { fullName, email, Emp_id, phone, password,type } = req.body;
+  console.log(req.body);
 
 
   const sql = `
     INSERT INTO SignUps (fullName, email, Emp_id, phone, password, type) 
-    VALUES (?, ?, ?, ?, ?, "user")
+    VALUES (?, ?, ?, ?, ?,?)
   `;
 
   try {
-    await sequelize.query(sql, { replacements: [fullName, email, Emp_id, phone, password] });
+    await sequelize.query(sql, { replacements: [fullName, email, Emp_id, phone, password,type] });
     res.json({ success: true, message: 'Signup successful!' });
   } catch (err) {
     console.error("Error during signup:", err);
@@ -63,21 +64,30 @@ app.post('/Login', async (req, res) => {
 
   try {
     const [results] = await sequelize.query(sql, { replacements: [Emp_id] });
+
     if (results.length === 0) {
-      return res.status(401).json({ error: 'Invalid Employee ID or password' });
+      return res.status(401).json({ success: false, error: 'Invalid Employee ID or password' });
     }
 
     const user = results[0];
     const passwordMatch = user.password === password;
 
     if (passwordMatch) {
-      res.json(user);
+      res.json({
+        success: true,
+        user: {
+          Emp_id: user.Emp_id,
+          fullName: user.fullName,
+          type: user.type
+        }
+      });
     } else {
-      res.status(401).json({ error: 'Invalid Employee ID or password' });
+      res.status(401).json({ success: false, error: 'Invalid Employee ID or password' });
     }
+
   } catch (err) {
     console.error("Login error:", err);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ success: false, error: 'Internal Server Error' });
   }
 });
 

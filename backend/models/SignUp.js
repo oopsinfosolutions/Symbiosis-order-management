@@ -29,8 +29,8 @@ const SignUp = sequelize.define("SignUp", {
     allowNull: false,
   },
   type: {
-    type: DataTypes.ENUM("user", "admin"),
-    defaultValue: "user",
+    type: DataTypes.ENUM("employee", "designer"),
+    
   },
   created_at: {
     type: DataTypes.DATE,

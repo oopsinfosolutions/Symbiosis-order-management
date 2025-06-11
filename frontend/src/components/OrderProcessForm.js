@@ -116,22 +116,28 @@ const OrderProcessForm = () => {
     return (qty * rate).toFixed(2);
   }, [formData.qty, formData.rate]);
   
-
-  useEffect(() => {
+useEffect(() => {
     const fetchBrands = async () => {
       try {
         const res = await axios.get("http://localhost:5000/api/brands");
-        const brandOptions = res.data.map((b) => ({
-          value: b.brandName,
-          label: b.brandName,
-        }));
+        console.log('Raw brand data:', res.data); // Debug log
+        
+        const brandOptions = res.data
+          .filter(b => b && b.brandName) // Filter out null/undefined entries
+          .map((b) => ({
+            value: b.brandName,
+            label: b.brandName,
+          }));
+        
+        console.log('Processed brand options:', brandOptions); // Debug log
         setBrands(brandOptions);
       } catch (error) {
         console.error("Error fetching brands:", error);
       }
     };
     fetchBrands();
-  }, []);
+}, []);
+    
 
   useEffect(() => {
     const fetchConcernedPersons = async () => {
@@ -169,7 +175,7 @@ const OrderProcessForm = () => {
     if (!selectedBrand) return;
 
     try {
-      const res = await axios.post("http://localhost:5000/api/getBrandDetails", {
+      const res = await axios.post("http://localhost:5000/api/orders", {
         brandName: selectedBrand,
       });
 
