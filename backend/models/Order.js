@@ -39,7 +39,7 @@ const Order = sequelize.define('Order', {
     defaultValue: 'NEW',
   },
   designer: DataTypes.STRING,
-  stage: DataTypes.NUMBER,
+  stage: DataTypes.INTEGER,
 
   // Stage 2: Packing Material Status
   concernedPerson: DataTypes.STRING,
@@ -74,37 +74,37 @@ const Order = sequelize.define('Order', {
   },
   innerPrinter: {
     type: DataTypes.STRING,
-    defaultValue: 0,
+    defaultValue: '',
   },
   outerPrinter: {
     type: DataTypes.STRING,
-    defaultValue: 0,
+    defaultValue: '',
   },
   foilTubePrinter: {
     type: DataTypes.STRING,
-    defaultValue: 0,
+    defaultValue: '',
   },
   additionalPrinter: {
     type: DataTypes.STRING,
-    defaultValue: 0,
+    defaultValue: '',
   },
 
   // Stage 5: Receipt Details
   innerReceived: {
     type: DataTypes.STRING,
-    defaultValue: 0,
+    defaultValue: '',
   },
   outerReceived: {
     type: DataTypes.STRING,
-    defaultValue: 0,
+    defaultValue: '',
   },
   foilTubeReceived: {
     type: DataTypes.STRING,
-    defaultValue: 0,
+    defaultValue: '',
   },
   additionalReceived: {
     type: DataTypes.STRING,
-    defaultValue: 0,
+    defaultValue: '',
   },
   receiptDate: DataTypes.DATE,
   shortExcess: {
@@ -120,7 +120,7 @@ const Order = sequelize.define('Order', {
   },
   shipper: DataTypes.INTEGER,
 }, {
-  timestamps: true, // enables createdAt and updatedAt
+  timestamps: true, // adds createdAt and updatedAt
 });
 
 module.exports = Order;
