@@ -130,15 +130,15 @@ const stageFilter = stageParam?.includes(",")
 
     } else if (stage === 5) {
       // Printers
-      dueDate = poDate ? dayjs(poDate).add(20, "day").startOf("day") : null;
+      dueDate = null;
 
     } else if (stage === 6) {
       // Receipt details
-      dueDate = null;
+      dueDate = dayjs(orderDate).add(40, "day").startOf("day");
 
     } else if (stage === 7) {
       // Sections
-      dueDate = dayjs(orderDate).add(40, "day").startOf("day");
+      dueDate = null
 
     } else if (stage === 8) {
       // Finished Product Dispatch
@@ -287,7 +287,6 @@ const stageFilter = stageParam?.includes(",")
       "Order ID": order.id,
       "Date": order.date?.split("T")[0],
       "Brand Name": order.brandName,
-
       "Quantity": order.qty,
       "Rate": order.rate,
       "Amount": order.amount,
@@ -453,7 +452,7 @@ const stageFilter = stageParam?.includes(",")
                       </select>
                     </div>
                   </th>
-                  <th className="py-2 px-4 border">Actions</th>
+                  {stageFilter !== 8 && <th className="py-2 px-4 border">Actions</th>}
                 </tr>
               </thead>
               <tbody>
@@ -489,7 +488,7 @@ const stageFilter = stageParam?.includes(",")
                           {label}
                         </span>
                       </td>
-                      <td className="py-2 px-4 border">
+                      {order.stage !== 8 && <td className="py-2 px-4 border">
                         {category}
                         {(category === 'printers' || category === 'sections') ? (
                           <button
@@ -506,7 +505,7 @@ const stageFilter = stageParam?.includes(",")
                             View
                           </button>
                         )}
-                      </td>
+                      </td>}
                     </tr>
                   );
                 })}

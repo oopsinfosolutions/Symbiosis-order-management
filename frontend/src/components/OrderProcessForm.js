@@ -520,20 +520,20 @@ const OrderProcessForm = () => {
       ),
     },
     ...(formData.productStatus === "repeat"
-      ? [{ title: "Stage 2: Packing Material Status", content: <Stage2 formData={formData} handleChange={handleChange} /> }]
+      ? [{ title: "ORDER OPENING FORM", content: <Stage2 formData={formData} handleChange={handleChange} /> }]
       : formData.productStatus === "New" //handleFileChange={handleFileChange} artworkFile={artworkFile} formData={formData}
-      ? [{ title: "Stage 3: Artwork Status", content: <Stage3 formData={formData} handleFileChange={handleFileChange} artworkFile={artworkFile} /> }]
+      ? [{ title: "PACKING MATERIAL ARTWORK STATUS ", content: <Stage3 formData={formData} handleFileChange={handleFileChange} artworkFile={artworkFile} /> }]
       : []),
     { 
-      title: "Stage 4: Order Form",
+      title: "PACKING MATERIAL ORDER FORM ",
       content: <Stage4 formData={formData} setFormData={setFormData} handleChange={handleChange} />
     },
     {
-      title: "Stage 5: Receipt Details",
+      title: "PACKING MATERIAL RECEIPT DETAILS ",
       content: <Stage5 formData={formData} setFormData={setFormData} handleChange={handleChange}/>,
     },
     {
-      title: "Stage 6: Finished Product Dispatch",
+      title: "FINISHED PRODUCT DISPATCH STATUS",
       content: <Stage6 formData={formData} setFormData={setFormData} handleBrandChange={handleBrandChange} 
       handleBrandCreate={handleBrandCreate}  brands={brands} amount={amount}/>,
     },
