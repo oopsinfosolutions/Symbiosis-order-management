@@ -26,7 +26,7 @@ const DNav = () => {
   return (
     <div className="sidebar">
       <div className="logo">
-        <h1>Emp panel</h1>
+        <h1>Designer panel</h1>
       </div>
       <ul className="menu">
         {menuItems.map((item, index) => (

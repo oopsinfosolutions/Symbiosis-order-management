@@ -1,9 +1,19 @@
+require("dotenv").config();
+
+console.log("Loaded DB config:", {
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  pass: process.env.DB_PASSWORD,
+  name: process.env.DB_NAME,
+});
+
+const sequelize = require("./config/db");
+const PORT = process.env.PORT || 5000;
 const express = require("express");
 const cors = require("cors");
-const sequelize = require("./config/db");
-require("dotenv").config();
 const SignUp = require('./models/SignUp');
 const path = require("path");
+const { Op } = require("sequelize");
 
 const app = express();
 app.use(cors());
@@ -120,34 +130,36 @@ app.post('/AdminLogin', async (req, res) => {
 });
 
 
-app.delete("/deleteUsers/:id", async(req, res) => {
-    const { id } = req.params;
+app.delete("/deleteUsers/:id", async (req, res) => {
+  const { id } = req.params;
 
-    try {
-        const sql = "DELETE FROM SignUps WHERE Emp_id = ?";
-        sequelize.query(sql, [id], (err, result) => {
-            if (err) {
-                console.error("Error deleting user:", err.message);
-                return res.status(500).json({ success: false, message: "Server error. Unable to delete user." });
-            }
+  try {
+    const sql = "DELETE FROM SignUps WHERE Emp_id = ?";
+    const [result] = await sequelize.query(sql, {
+      replacements: [id],
+    });
 
-            if (result.affectedRows > 0) {
-                res.status(200).json({ success: true, message: "User deleted successfully." });
-            } else {
-                res.status(404).json({ success: false, message: "User not found." });
-            }
-        });
-    } catch (error) {
-        console.error("Error deleting user:", error.message);
-        res.status(500).json({ success: false, message: "Server error. Unable to delete user." });
+    // Sequelize raw queries on MariaDB might not return `affectedRows`, instead use `result.affectedRows` or check returned length
+    if (result.affectedRows && result.affectedRows > 0) {
+      res.status(200).json({ success: true, message: "User deleted successfully." });
+    } else {
+      res.status(404).json({ success: false, message: "User not found." });
     }
+  } catch (error) {
+    console.error("Error deleting user:", error.message);
+    res.status(500).json({ success: false, message: "Server error. Unable to delete user." });
+  }
 });
 
 app.get('/Listusers', async (req, res) => {
   try {
     const users = await SignUp.findAll({
-      where: { type: 'user' },
-      attributes: ['Emp_id', 'fullName', 'email', 'phone']
+      where: {
+        type: {
+          [Op.or]: ['employee', 'designer']
+        }
+      },
+      attributes: ['Emp_id', 'fullName', 'type', 'email', 'phone']
     });
 
     res.json(users);
@@ -159,48 +171,39 @@ app.get('/Listusers', async (req, res) => {
 
   
 
-app.put('/updateusers', (req, res) => {
-    const { Emp_id, fullName, email, phone, password } = req.body;
+app.put('/updateusers', async (req, res) => {
+  const { Emp_id, fullName, email, phone, password } = req.body;
 
-    if (!Emp_id || !fullName || !email) {
-        return res.json({ success: false, message: 'All required fields must be provided.' });
+  if (!Emp_id || !fullName || !email) {
+    return res.status(400).json({ success: false, message: 'All required fields must be provided.' });
+  }
+
+  const sql = password
+    ? `UPDATE SignUps SET fullName = ?, email = ?, phone = ?, password = ? WHERE Emp_id = ?`
+    : `UPDATE SignUps SET fullName = ?, email = ?, phone = ? WHERE Emp_id = ?`;
+
+  const params = password ? [fullName, email, phone, password, Emp_id] : [fullName, email, phone, Emp_id];
+
+  try {
+    const [result] = await sequelize.query(sql, { replacements: params });
+
+    if (result.affectedRows && result.affectedRows > 0) {
+      res.json({ success: true, message: 'User updated successfully!' });
+    } else {
+      res.status(404).json({ success: false, message: 'No user found with the provided Employee ID.' });
     }
-
-    const sql = password ?
-        `
-            UPDATE SignUps 
-            SET fullName = ?, email = ?, phone = ?, password = ? 
-            WHERE Emp_id = ?
-          ` :
-        `
-            UPDATE SignUps 
-            SET fullName = ?, email = ?, phone = ? 
-            WHERE Emp_id = ?
-          `;
-
-    const params = password ? [fullName, email, phone, password, Emp_id] : [fullName, email, phone, Emp_id];
-
-    sequelize.query(sql, params, (err, result) => {
-        if (err) {
-            console.error("Error updating user:", err);
-            return res.json({ success: false, message: 'Database error occurred while updating user.' });
-        }
-
-        if (result.affectedRows > 0) {
-            res.json({ success: true, message: 'User updated successfully!' });
-        } else {
-            res.json({ success: false, message: 'No user found with the provided Employee ID.' });
-        }
-    });
+  } catch (err) {
+    console.error("Error updating user:", err);
+    res.status(500).json({ success: false, message: 'Database error occurred while updating user.' });
+  }
 });
-
 
 // Sync database and start server
 sequelize.sync().then(() => {
   console.log("Database synced");
-  app.listen(process.env.PORT, () => {
-    console.log(`Server running on port ${process.env.PORT}`);
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server running at http://0.0.0.0:${PORT}`);
   });
 }).catch(err => {
-  console.error("Failed to sequelizeect to DB:", err);
+  console.error("Failed to connect to DB:", err);
 });

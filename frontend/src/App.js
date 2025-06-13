@@ -12,9 +12,9 @@ import AdminLogin from './components/AdminLogin';
 import ConcernedPersonDashboard from "./components/ConcernedPerson/ConcernedPErsonDashboard";
 import ConcernedOrders from "./components/ConcernedPerson/ConcernedOrders";
 import ConcernedPersonsList from "./components/Admin/ConcernedPersonsList";
-import { AuthProvider } from "./context/AuthContext";
 import DesignerPage from './components/Designer/DesignerPage';
 import ADD_ArtWork from './components/Designer/ADD_ArtWork';
+import { AuthProvider } from "./context/AuthContext";
 import './index.css';
 
 function App() {
@@ -41,6 +41,7 @@ function App() {
           <Route path="/multiform/:id" element={<OrderProcessForm />} />
           <Route path="/DesignerPage" element={<DesignerPage />} />
           <Route path="/ADD_ArtWork" element={<ADD_ArtWork />} />
+          <Route path="/multiform/:id" element={<OrderProcessForm />} />
         </Routes>
       </Router>
     </AuthProvider>

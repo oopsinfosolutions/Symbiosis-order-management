@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import DNav from './DNav';
 import axios from "axios";
+import Stage3 from "../Stages/Stage3";
 import Stage2 from "../Stages/Stage2";
 import { useNavigate, useSearchParams, useParams, useLocation } from "react-router-dom";
 

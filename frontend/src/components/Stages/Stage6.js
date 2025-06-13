@@ -141,8 +141,8 @@ const Stage6 = ({ formData, handleChange, handleBrandChange, handleBrandCreate, 
           <td className="border p-2">
             <input
               type="text"
-              name="productType"
-              value={formData.productType}
+              name="section"
+              value={formData.section}
               onChange={handleChange}
               className="w-full border p-1"
             />
@@ -180,8 +180,8 @@ const Stage6 = ({ formData, handleChange, handleBrandChange, handleBrandCreate, 
         <span className="block font-semibold mb-1">Quantity Dispatched</span>
         <input
           type="number"
-          name="qtyDispatch"
-          value={formData.qtyDispatch}
+          name="dispatchQty"
+          value={formData.dispatchQty}
           onChange={handleChange}
           className="w-full border p-2"
         />

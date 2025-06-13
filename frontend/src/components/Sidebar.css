@@ -4,6 +4,8 @@ body {
     background: #f4f4f9;
 }
 
+<<<<<<< HEAD
+=======
 .layout-contain {
     width: 100%;
     height: 100%;
@@ -15,6 +17,7 @@ body {
     background-color: #f0f0f0;
 }
 
+>>>>>>> 64e283357dca824897a8321fec7aa76b24802621
 .sidebar {
     width: 250px;
     height: 100vh;
@@ -76,14 +79,29 @@ body {
 .menu-item {
     list-style: none;
     margin-bottom: 10px;
+<<<<<<< HEAD
+  }
+  
+  .menu-link {
+=======
 }
 
 .menu-link {
+>>>>>>> 64e283357dca824897a8321fec7aa76b24802621
     display: flex;
     justify-content: space-between;
     padding: 10px;
     color: #fff;
     text-decoration: none;
+<<<<<<< HEAD
+  }
+  
+  .menu-link:hover {
+    background-color: #333;
+  }
+  
+  .submenu {
+=======
 }
 
 .menu-link:hover {
@@ -91,10 +109,29 @@ body {
 }
 
 .submenu {
+>>>>>>> 64e283357dca824897a8321fec7aa76b24802621
     margin-top: 5px;
     margin-left: 15px;
     padding-left: 10px;
     border-left: 1px solid #555;
+<<<<<<< HEAD
+  }
+  
+  .submenu-item {
+    margin-bottom: 8px;
+  }
+  
+  .submenu-link {
+    color: #ddd;
+    text-decoration: none;
+    font-size: 0.9em;
+  }
+  
+  .submenu-link:hover {
+    color: #fff;
+  }
+  
+=======
 }
 
 .submenu-item {
@@ -110,3 +147,4 @@ body {
 .submenu-link:hover {
     color: #fff;
 }
+>>>>>>> 64e283357dca824897a8321fec7aa76b24802621

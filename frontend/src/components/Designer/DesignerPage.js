@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import DNav from "./DNav";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function DesignerPage() {
   const [orders, setOrders] = useState([]);
@@ -9,27 +10,24 @@ export default function DesignerPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
   const itemsPerPage = 5;
-  const limit = 20; // Orders per page from API
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchOrders = async () => {
       setLoading(true);
       try {
-        // Fetch all orders from the ViewOrders endpoint
-        const response = await axios.get(`http://localhost:5000/api/orders?page=1&limit=1000`); // Get all orders
-        
-        const fetchedOrders = Array.isArray(response.data.orders) ? response.data.orders : [];
-        
-        // Filter orders for stage 2 and productStatus "new"
-        const filtered = fetchedOrders.filter(order => 
-          order.stage === 2 && order.productStatus === "new"
-        );
-        
-        setOrders(fetchedOrders);
-        setFilteredOrders(filtered);
-        setTotalPages(Math.ceil(filtered.length / itemsPerPage));
-        
-        console.log("Filtered orders for designer:", filtered);
+        const fullname = sessionStorage.getItem("fullname");
+        console.log(fullname)
+
+const response = await axios.get(`http://localhost:5000/api/designer-orders`, {
+  params: { fullname }
+});
+
+
+const fetchedOrders = Array.isArray(response.data.orders) ? response.data.orders : [];
+setFilteredOrders(fetchedOrders);
+setTotalPages(Math.ceil(fetchedOrders.length / itemsPerPage));
+
       } catch (error) {
         console.error("Error fetching designer orders:", error);
         setFilteredOrders([]);
@@ -53,120 +51,153 @@ export default function DesignerPage() {
     if (currentPage < totalPages) setCurrentPage(currentPage + 1);
   };
 
-  const handleOrderAction = async (orderId) => {
-    try {
-      // You can add any action logic here for the designer
-      console.log("Processing order:", orderId);
-      // For example, update order status or navigate to design form
-    } catch (error) {
-      console.error("Error processing order:", error);
-    }
-  };
+  const handleOrderAction = (orderId) => {
+  let nextStage = 2;
+   axios
+      .post("http://localhost:5000/api/orders/edit-status", {
+        orderId: orderId,
+        status: "New",
+      })
+      .then((res) => {
+        console.log("Status update sent:", res.data);
+  
+        // Pass order data using state
+        navigate(`/multiform/${orderId}?stage=${nextStage}`);
+      })
+      .catch((err) => {
+        console.error("Failed to send edit info:", err);
+      });
+};
 
-  const exportToExcel = () => {
-    // Export functionality
-    console.log("Exporting to Excel...");
-    // You can implement Excel export logic here
-  };
+ const exportToExcel = async () => {
+  try {
+    const response = await axios.post(
+      'http://localhost:5000/api/orders/export-orders',
+      { orders: filteredOrders },
+      {
+        responseType: 'blob', // Important to handle binary file
+      }
+    );
+
+    // Create a URL for the downloaded file
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'designer_orders.xlsx'); // File name
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  } catch (error) {
+    console.error('Export failed:', error);
+    alert('Failed to export orders to Excel');
+  }
+};
 
   return (
     <>
-    <div className="layout-container">
-          <div className="sidebar-container">
-            <DNav/>
-          </div>
-          <div className="form-section">
-      <div className="designer-container">
-        <div className="designer-content">
-          <h2>Your Orders - Design Stage</h2>
-          <p className="order-info">
-            Showing orders at Stage 2 with "New" product status
-          </p>
-          
-          {loading ? (
-            <div className="loading">Loading orders...</div>
-          ) : (
-            <>
-              <div className="orders-list">
-                {filteredOrders.length === 0 ? (
-                  <div className="no-orders">
-                    No orders found for design stage.
-                  </div>
-                ) : (
-                  <div className="orders-grid">
-                    {currentOrders.map((order) => (
-                      <div key={order.id} className="order-card">
-                        <div className="order-header">
-                          <h3>Order #{order.id}</h3>
-                          <span className="order-date">
-                            {order.date?.split("T")[0]}
-                          </span>
-                        </div>
-                        <div className="order-details">
-                          <p><strong>Brand:</strong> {order.brandName}</p>
-                          <p><strong>Client:</strong> {order.clientName}</p>
-                          <p><strong>Composition:</strong> {order.composition || 'N/A'}</p>
-                          <p><strong>Pack Size:</strong> {order.packSize || 'N/A'}</p>
-                          <p><strong>Qty:</strong> {order.qty}</p>
-                          <p><strong>MRP:</strong> {order.mrp}</p>
-                          <p><strong>Rate:</strong> {order.rate || 'N/A'}</p>
-                          <p><strong>Status:</strong> 
-                            <span className="status-badge status-new">
-                              {order.productStatus}
-                            </span>
-                          </p>
-                          <p><strong>Stage:</strong> {order.stage}</p>
-                        </div>
-                        <div className="order-actions">
-                          <button 
-                            className="btn-design"
-                            onClick={() => handleOrderAction(order.id)}
-                          >
-                            Start Design
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {filteredOrders.length > 0 && (
-                <div className="pagination">
-                  <button 
-                    onClick={handlePrevious}
-                    disabled={currentPage === 1}
-                    className="pagination-btn"
-                  >
-                    Previous
-                  </button>
-                  <span className="pagination-info">
-                    Page {currentPage} of {totalPages}
-                  </span>
-                  <button 
-                    onClick={handleNext}
-                    disabled={currentPage === totalPages}
-                    className="pagination-btn"
-                  >
-                    Next
-                  </button>
-                </div>
-              )}
-
-              <div className="export-section">
-                <button 
-                  onClick={exportToExcel}
-                  className="btn-export"
-                  disabled={filteredOrders.length === 0}
-                >
-                  Export to Excel
-                </button>
-              </div>
-            </>
-          )}
+      <div className="layout-container">
+        <div className="sidebar-container">
+          <DNav />
         </div>
-      </div>
-      </div>
+        <div className="form-section">
+          <div className="designer-container">
+            <div className="designer-content">
+              <h2>Your Orders - Design Stage</h2>
+
+              {loading ? (
+                <div className="loading">Loading orders...</div>
+              ) : (
+                <>
+                  {filteredOrders.length === 0 ? (
+                    <div className="no-orders">No orders found for design stage.</div>
+                  ) : (
+                    <div className="table-wrapper">
+                      <table className="orders-table">
+                        <thead>
+                          <tr>
+                            <th>ID</th>
+                            <th>Date</th>
+                            <th>Brand</th>
+                            <th>Client</th>
+                            <th>Composition</th>
+                            <th>Pack Size</th>
+                            <th>Qty</th>
+                            <th>MRP</th>
+                            <th>Rate</th>
+                            <th>Status</th>
+                            <th>Stage</th>
+                            <th>Action</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {currentOrders.map((order) => (
+                            <tr key={order.id}>
+                              <td>{order.id}</td>
+                              <td>{order.date?.split("T")[0]}</td>
+                              <td>{order.brandName}</td>
+                              <td>{order.clientName}</td>
+                              <td>{order.composition || "N/A"}</td>
+                              <td>{order.packSize || "N/A"}</td>
+                              <td>{order.qty}</td>
+                              <td>{order.mrp}</td>
+                              <td>{order.rate || "N/A"}</td>
+                              <td>
+                                <span className="status-badge status-new">
+                                  {order.productStatus}
+                                </span>
+                              </td>
+                              <td>{order.stage}</td>
+                              <td>
+                                <button
+                                  className="btn-design"
+                                  onClick={() => handleOrderAction(order.id)}
+                                >
+                                  Start Design
+                         </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  {filteredOrders.length > 0 && (
+                    <div className="pagination">
+                      <button
+                        onClick={handlePrevious}
+                        disabled={currentPage === 1}
+                        className="pagination-btn"
+                      >
+                        Previous
+                      </button>
+                      <span className="pagination-info">
+                        Page {currentPage} of {totalPages}
+                      </span>
+                      <button
+                        onClick={handleNext}
+                        disabled={currentPage === totalPages}
+                        className="pagination-btn"
+                      >
+                        Next
+                      </button>
+                    </div>
+                  )}
+
+                  <div className="export-section">
+                    <button
+                      onClick={exportToExcel}
+                      className="btn-export"
+                      disabled={filteredOrders.length === 0}
+                    >
+                      Export to Excel
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
 
       <style jsx>{`
@@ -183,70 +214,27 @@ export default function DesignerPage() {
           box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
-        .designer-content h2 {
-          color: #333;
-          margin-bottom: 8px;
-        }
-
-        .order-info {
-          color: #666;
-          margin-bottom: 24px;
-          font-size: 14px;
-        }
-
-        .loading {
+        .loading, .no-orders {
           text-align: center;
           padding: 40px;
           color: #666;
         }
 
-        .no-orders {
+        .orders-table {
+          width: 100%;
+          border-collapse: collapse;
+          margin-top: 20px;
+        }
+
+        .orders-table th, .orders-table td {
+          border: 1px solid #ddd;
+          padding: 12px;
           text-align: center;
-          padding: 40px;
-          color: #666;
-          background: #f9f9f9;
-          border-radius: 8px;
         }
 
-        .orders-grid {
-          display: grid;
-          gap: 20px;
-          margin-bottom: 24px;
-        }
-
-        .order-card {
-          border: 1px solid #e0e0e0;
-          border-radius: 8px;
-          padding: 20px;
-          background: #fafafa;
-        }
-
-        .order-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 16px;
-          padding-bottom: 12px;
-          border-bottom: 1px solid #e0e0e0;
-        }
-
-        .order-header h3 {
-          margin: 0;
+        .orders-table th {
+          background-color: #f5f5f5;
           color: #333;
-        }
-
-        .order-date {
-          color: #666;
-          font-size: 14px;
-        }
-
-        .order-details {
-          margin-bottom: 16px;
-        }
-
-        .order-details p {
-          margin: 8px 0;
-          color: #555;
         }
 
         .status-badge {
@@ -262,15 +250,11 @@ export default function DesignerPage() {
           color: #1976d2;
         }
 
-        .order-actions {
-          text-align: right;
-        }
-
         .btn-design {
           background: #4caf50;
           color: white;
           border: none;
-          padding: 10px 20px;
+          padding: 8px 14px;
           border-radius: 4px;
           cursor: pointer;
           font-weight: bold;
@@ -335,6 +319,18 @@ export default function DesignerPage() {
 
         .btn-export:hover:not(:disabled) {
           background: #f57c00;
+        }
+
+        @media (max-width: 768px) {
+          .orders-table th, .orders-table td {
+            font-size: 12px;
+            padding: 6px;
+          }
+
+          .btn-design {
+            padding: 6px 10px;
+            font-size: 12px;
+          }
         }
       `}</style>
     </>

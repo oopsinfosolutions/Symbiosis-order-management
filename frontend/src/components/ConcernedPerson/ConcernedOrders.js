@@ -17,7 +17,8 @@ function ConcernedOrders() {
   const [statusFilter, setStatusFilter] = useState("");
 
   const queryParams = new URLSearchParams(location.search);
-  const stageFilter = parseInt(queryParams.get("stage"), 7); // Will be NaN if not provided
+  const stageFilter = parseInt(queryParams.get("stage"), 10); // Will be NaN if not provided
+  const navStatus = queryParams.get("status");
   const currentPath = location.pathname;
   const category = currentPath.split("/")[1];
 
@@ -34,6 +35,8 @@ function ConcernedOrders() {
   
 
 console.log(category)
+  console.log( "Status:", navStatus); //return new or repeat
+
 
   const userType = sessionStorage.getItem('type');
   const empId = sessionStorage.getItem('id');
@@ -101,27 +104,56 @@ console.log(category)
 
 
   const getStatus = (orderDate, productStatus, stage, poDate) => {
-    if (!orderDate) return { label: "No date", color: "bg-gray-400" };
+  const now = dayjs().startOf("day");
+  let dueDate = null;
 
-    const now = dayjs().startOf("day");
-    var daysToAdd = 0;
-    if(stage == 1) {
-      daysToAdd = productStatus?.toLowerCase() === "new" ? 5 : 2;
-        }    else if(stage == 2 || stage == 3) {
-      daysToAdd = productStatus?.toLowerCase() === "new" ? 7 : 4;
-    } else if(stage == 4){
-      daysToAdd = 20
-    } else {
-      daysToAdd = 40
-    }
-    const dueDate = dayjs(orderDate).add(daysToAdd, "day").startOf("day");
-    const diff = dueDate.diff(now, "day");
+if (stage === 2) {
+  // Packing Material Status
+  dueDate = productStatus?.toLowerCase() === "repeat"
+    ? dayjs(orderDate).add(2, "day").startOf("day")
+    : null; // No due date for new here?
+  
+} else if (stage === 3) {
+  // Artwork Status
+  dueDate = productStatus?.toLowerCase() === "new"
+    ? dayjs(orderDate).add(5, "day").startOf("day")
+    : null;
 
-    if (diff > 1) return { label: `${diff} days left`, color: "bg-green-400" };
-    if (diff === 1) return { label: "1 day left", color: "bg-yellow-300" };
-    if (diff === 0) return { label: "Due today", color: "bg-yellow-400" };
-    return { label: "Overdue", color: "bg-red-500" };
-  };
+} else if (stage === 4) {
+  // Packing Material Order Form
+  if (productStatus?.toLowerCase() === "repeat") {
+    dueDate = dayjs(orderDate).add(4, "day").startOf("day");
+  } else if (productStatus?.toLowerCase() === "new") {
+    dueDate = dayjs(orderDate).add(7, "day").startOf("day");
+  }
+
+} else if (stage === 5) {
+  // Printers
+  dueDate = poDate ? dayjs(poDate).add(20, "day").startOf("day") : null;
+
+} else if (stage === 6) {
+  // Receipt details
+  dueDate = null;
+
+} else if (stage === 7) {
+  // Sections
+  dueDate = dayjs(orderDate).add(40, "day").startOf("day");
+
+} else if (stage === 8) {
+  // Finished Product Dispatch
+  dueDate = null;
+}
+
+
+  if (!dueDate || !dueDate.isValid()) return { label: "No date", color: "bg-gray-400" };
+
+  const diff = dueDate.diff(now, "day");
+
+  if (diff > 1) return { label: `${diff} days left`, color: "bg-green-400" };
+  if (diff === 1) return { label: "1 day left", color: "bg-yellow-300" };
+  if (diff === 0) return { label: "Due today", color: "bg-yellow-400" };
+  return { label: "Overdue", color: "bg-red-500" };
+};
 
   // const handleView = (id, currentStage) => {
   //   const nextStage = currentStage + 1;
@@ -129,21 +161,59 @@ console.log(category)
   // };
   console.log(orders)
 
+  const handleComplete = async (order) => {
+  const updatedStage = category === 'printers' ? 6 : 8;
+
+  try {
+    const res = await axios.put(`http://localhost:5000/api/orders/update-stage`, {
+      orderId: order.id,
+      newStage: updatedStage,
+    });
+
+    console.log("Order updated successfully:", res.data);
+
+    // Update local state to reflect change
+    setOrders((prevOrders) =>
+      prevOrders.map((o) =>
+        o.id === order.id ? { ...o, stage: updatedStage } : o
+      )
+    );
+    navigate(`/view-orders/${empId}?stage=${updatedStage}`, { state: { order } });
+
+    // Optionally show a success toast/snackbar
+  } catch (err) {
+    console.error("Error updating order stage:", err);
+    // Optionally show error toast
+  }
+};
+
+
   const handleEditOrder = (order) => {
     const { id, productStatus } = order;
   
     let nextStage;
     console.log(order)
   
-    if (order.stage == 1 && productStatus === "repeat") {
-      nextStage = 2;
-    } else if (order.stage == 1 && productStatus === "new") {
-      nextStage = 3;
-    } else {
-      nextStage = 1; // fallback
-    }
+    if (order.stage === 1 && productStatus === "repeat") {
+    nextStage = 2; // Packing Material Status
+  } else if (order.stage === 1 && productStatus === "new") {
+    nextStage = 3; // Artwork Status
+  } else if (order.stage === 2 || order.stage === 3) {
+    nextStage = 4; // Packing Material Order Form
+  } else if (order.stage === 4) {
+    nextStage = 5; // Printers
+  } else if (order.stage === 5) {
+    nextStage = 6; // Receipt Details
+  } else if (order.stage === 6) {
+    nextStage = 7; // Sections
+  } else if (order.stage === 7) {
+    nextStage = 8; // Finished Product Dispatch
+  } else if (order.stage === 8) {
+    nextStage = 5; // Dispatched orders
+  } else {
+    nextStage = order.stage + 1; // fallback
+  }
 
-    nextStage = order.stage + 1;
   
     // Optional: backend sync
     axios
@@ -153,9 +223,15 @@ console.log(category)
       })
       .then((res) => {
         console.log("Status update sent:", res.data);
-  
-        // Pass order data using state
+  if (order.stage === 4) {
+        navigate(`/printers`, { state: { order } });
+      } else if (order.stage === 6) {
+        navigate(`/sections`, { state: { order } });
+      } else {
         navigate(`/multiform/${id}?stage=${nextStage}`, { state: { order } });
+      }
+        // Pass order data using state
+        // navigate(`/multiform/${id}?stage=${nextStage}`, { state: { order } });
       })
       .catch((err) => {
         console.error("Failed to send edit info:", err);
@@ -168,8 +244,9 @@ console.log(category)
       .some(field =>
         field?.toString().toLowerCase().includes(searchTerm.toLowerCase())
       )
-  )
-  .filter(order =>
+  ).filter(order =>
+  navStatus ? order.productStatus?.toLowerCase() === navStatus.toLowerCase() : true
+).filter(order =>
     !isNaN(stageFilter) ? order.stage === stageFilter : true
   ).filter(order => {
     console.log(statusFilter)
@@ -197,6 +274,7 @@ const exportToExcel = () => {
     "Order ID": order.id,
     "Date": order.date?.split("T")[0],
     "Brand Name": order.brandName,
+    
     "Quantity": order.qty,
     "Rate": order.rate,
     "Amount": order.amount,
@@ -299,16 +377,17 @@ const prevPage = () => setPage((prev) => Math.max(prev - 1, 1));
                       <th className="py-2 px-4 border">Date</th>
                       <th className="py-2 px-4 border">Product Name</th>
 
-                      {category === "printer" && (
-                        <td className="py-2 px-4 border">
+                      {category === "printers" && (
+                        <th className="py-2 px-4 border">
                           Type
-                        </td>
+                        </th>
                       )}
 
-                      <td className="py-2 px-4 border">Quantity</td>
+                      <th className="py-2 px-4 border">Quantity</th>
                       <th className="py-2 px-4 border">Rate</th>
                       <th className="py-2 px-4 border">Amount</th>
                       {/* <th className="py-2 px-4 border">Product Status</th> */}
+                      <th className="py-2 px-4 border">Stage</th>
                       <th className="py-2 px-4 border">Status</th>
                       <th className="py-2 px-4 border">
                         <div className="flex flex-col">
@@ -329,42 +408,57 @@ const prevPage = () => setPage((prev) => Math.max(prev - 1, 1));
               </thead>
               <tbody>
                 {filteredOrders.map((order) => {
+                  console.log(order)
                   const { label, color } = getStatus(order.date, order.productStatus, order.stage, order.poDate);
                   return (
                     <tr key={order._id}>
                       <td className="py-2 px-4 border">{order.id}</td>
                       <td className="py-2 px-4 border">{order.date?.split("T")[0]}</td>
                       <td className="py-2 px-4 border">{order.brandName}</td>
-                      {category === "printer" && (
-                        <td className="py-2 px-4 border">
-                          {order.printer?.type === "innerPrinter"
-                            ? "Inner"
-                            : order.printer?.type === "outerPrinter"
-                              ? "Outer"
-                              : order.printer?.type === "foilTubePrinter"
-                              ? "Foil/Tube"
-                              : order.printer?.type === "additionalPrinter"
-                              ? "Additional"
-                              : "—"}
-                        </td>
-      )}
+                      {category === "printers" && (
+  <td className="py-2 px-4 border">
+    {order.innerPrinter === selectedPrinter
+      ? "Inner"
+      : order.outerPrinter === selectedPrinter
+      ? "Outer"
+      : order.foilTubePrinter === selectedPrinter
+      ? "Foil/Tube"
+      : order.additionalPrinter === selectedPrinter
+      ? "Additional"
+      : "—"}
+  </td>
+)}
+
                       <td className="py-2 px-4 border">{order.qty}</td>
                       <td className="py-2 px-4 border">{order.rate}</td>
                       <td className="py-2 px-4 border">{order.amount}</td>
+                      <td className="py-2 px-4 border">{order.stage}</td>
                       <td className="py-2 px-4 border">{order.productStatus}</td>
                       <td className="py-2 px-4 border">
                         <span className={`text-white px-2 py-1 rounded text-sm ${color}`}>
                           {label}
                         </span>
-                      </td> 
-                      <td className="py-2 px-4 border">
-                        <button
-                          className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
-                          onClick={() => handleEditOrder(order       )}
-                        >
-                          View
-                        </button>
                       </td>
+                      <td className="py-2 px-4 border">
+  {category}
+  {(category === 'printers' || category === 'sections') ? (
+    <button
+      className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
+      onClick={() => handleComplete(order)}
+    >
+      Complete
+    </button>
+  ) : (
+    <button
+      className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
+      onClick={() => handleEditOrder(order)}
+    >
+      View
+    </button>
+  )}
+</td>
+
+
                     </tr>
                   );
                 })}

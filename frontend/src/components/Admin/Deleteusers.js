@@ -54,6 +54,7 @@ const DeleteUsers = () => {
               <tr>
                 <th>Employee ID</th>
                 <th>Full Name</th>
+                <th>Type</th>
                 <th>Email</th>
                 <th>Phone</th>
                 <th>Actions</th>
@@ -65,6 +66,7 @@ const DeleteUsers = () => {
                   <tr key={user.Emp_id}>
                     <td>{user.Emp_id}</td>
                     <td>{user.fullName}</td>
+                    <td>{user.type}</td>
                     <td>{user.email}</td>
                     <td>{user.phone}</td>
                     <td>
