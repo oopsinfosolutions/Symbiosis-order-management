@@ -232,6 +232,8 @@ const stageFilter = stageParam?.includes(",")
           navigate(`/multiform/${id}?stage=${4}`, { state: { order } });
         } else if (order.stage === 6) {
           navigate(`/sections`, { state: { order } });
+        } else if (order.stage === 7) {
+          navigate(`/multiform/${id}?stage=${5}`, { state: { order } });
         } else {
           navigate(`/multiform/${id}?stage=${nextStage}`, { state: { order } });
         }
