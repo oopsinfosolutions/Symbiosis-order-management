@@ -66,7 +66,7 @@ router.get("/orders", async(req, res) => {
 router.get("/concerned-persons", async (req, res) => {
     try {
         const [results] = await db.query(
-            "SELECT emp_id, fullName FROM signups WHERE type='user'"
+            "SELECT emp_id, fullName FROM signups WHERE type='employee'"
         );
         res.json(results);
     } catch (err) {
@@ -114,7 +114,7 @@ router.post('/saveProgress', upload.single("artwork"), async(req, res) => {
         receiptDate: safeValue(data.receiptDate),
         shortExcess: safeValue(data.shortExcess),
         dispatchDate: safeValue(data.dispatchDate),
-        qtyDispatch: safeValue(data.qtyDispatch), // Added missing field
+        dispatchQty: safeValue(data.dispatchQty), // Added missing field
         shipper: safeValue(data.shipper),
         stage: safeValue(data.stage),
         attachApprovedArtwork: safeValue(artworkFilename),
@@ -144,7 +144,7 @@ router.post('/saveProgress', upload.single("artwork"), async(req, res) => {
                     innerPacking=:innerPacking, OuterPacking=:OuterPacking, foilTube=:foilTube, additional=:additional,
                     approvedArtwork=:approvedArtwork, reasonIfHold=:reasonIfHold, poNumber=:poNumber, poDate=:poDate,
                     innerOrder=:innerOrder, outerOrder=:outerOrder, foilTubeOrder=:foilTubeOrder, additionalOrder=:additionalOrder,
-                    receiptDate=:receiptDate, shortExcess=:shortExcess, dispatchDate=:dispatchDate, qtyDispatch=:qtyDispatch, shipper=:shipper, stage=:stage,
+                    receiptDate=:receiptDate, shortExcess=:shortExcess, dispatchDate=:dispatchDate, dispatchQty=:dispatchQty, shipper=:shipper, stage=:stage,
                     attachApprovedArtwork=:attachApprovedArtwork, innerPrinter=:innerPrinter, outerPrinter=:outerPrinter, 
                     foilTubePrinter=:foilTubePrinter, additionalPrinter=:additionalPrinter, innersize=:innersize, outersize=:outersize,
                     foiltubesize=:foiltubesize, additionalsize=:additionalsize, updatedAt=:updatedAt
@@ -161,7 +161,7 @@ router.post('/saveProgress', upload.single("artwork"), async(req, res) => {
                     innerPacking, OuterPacking, foilTube, additional,
                     approvedArtwork, reasonIfHold, poNumber, poDate,
                     innerOrder, outerOrder, foilTubeOrder, additionalOrder,
-                    receiptDate, shortExcess, dispatchDate, qtyDispatch, shipper, stage, 
+                    receiptDate, shortExcess, dispatchDate, dispatchQty, shipper, stage, 
                     attachApprovedArtwork, innerPrinter, outerPrinter, 
                     foilTubePrinter, additionalPrinter, innersize, outersize,
                     foiltubesize, additionalsize, createdAt, updatedAt
@@ -171,7 +171,7 @@ router.post('/saveProgress', upload.single("artwork"), async(req, res) => {
                     :innerPacking, :OuterPacking, :foilTube, :additional,
                     :approvedArtwork, :reasonIfHold, :poNumber, :poDate,
                     :innerOrder, :outerOrder, :foilTubeOrder, :additionalOrder,
-                    :receiptDate, :shortExcess, :dispatchDate, :qtyDispatch, :shipper, :stage, 
+                    :receiptDate, :shortExcess, :dispatchDate, :dispatchQty, :shipper, :stage, 
                     :attachApprovedArtwork, :innerPrinter, :outerPrinter, 
                     :foilTubePrinter, :additionalPrinter, :innersize, :outersize,
                     :foiltubesize, :additionalsize, :createdAt, :updatedAt
@@ -290,20 +290,105 @@ router.get('/designer', (req, res) => {
     res.json({ message: "Designer dashboard" });
 });
 
-router.get('/designer-orders/:designerName', async (req, res) => {
+router.get('/designer-orders', async (req, res) => {
+  const fullname = req.query.fullname;
+  if (!fullname) return res.status(400).json({ error: "Missing fullname" });
+
   try {
-    const designerName = req.params.designerName;
     const orders = await Order.findAll({
       where: {
-        productStatus: 'NEW',
-        designer: designerName
-      }
+        designer: fullname,
+        stage: 1,
+      },
     });
-    res.json(orders);
+    res.json({ orders });
   } catch (error) {
-    console.error('Error fetching designer orders:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Error fetching designer orders:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
-})
+});
+
+router.post('/export-orders', async (req, res) => {
+  try {
+    const { orders } = req.body;
+
+    if (!orders || orders.length === 0) {
+      return res.status(400).json({ message: 'No orders provided' });
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Orders');
+
+
+    const firstOrder = orders[0];
+    worksheet.columns = Object.keys(firstOrder).map((key) => ({
+      header: key.charAt(0).toUpperCase() + key.slice(1),
+      key,
+      width: 20,
+    }));
+
+    // Add each order as a row
+    orders.forEach(order => {
+      worksheet.addRow(order);
+    });
+
+    // Set response headers to return Excel file
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    );
+    res.setHeader('Content-Disposition', 'attachment; filename=orders.xlsx');
+
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (error) {
+    console.error('Error exporting Excel:', error);
+    res.status(500).json({ message: 'Failed to export Excel' });
+  }
+});
+
+
+router.post("/orders/edit-artwork", async (req, res) => {
+  const { orderId, status, stage } = req.body;
+  try {
+    const order = await Order.findByPk(orderId);
+    if (!order) return res.status(404).json({ message: "Order not found" });
+
+    order.productStatus = status;
+    if (stage !== undefined) order.stage = stage;
+    await order.save();
+
+    res.json({ message: "Order updated successfully", order });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to update", error });
+  }
+});
+
+// In routes/orders.js or similar
+router.put("/update-stage", async (req, res) => {
+  const { orderId, newStage } = req.body;
+
+  try {
+    const [updatedRowsCount] = await Order.update(
+      { stage: newStage },
+      { where: { id: orderId } }
+    );
+
+    if (updatedRowsCount === 0) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    // Fetch the updated order
+    const updatedOrder = await Order.findByPk(orderId);
+
+    res.status(200).json(updatedOrder);
+  } catch (error) {
+    console.error("Error updating stage:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+
+
 
 module.exports = router;

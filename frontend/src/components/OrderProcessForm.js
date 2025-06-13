@@ -78,7 +78,7 @@ const OrderProcessForm = () => {
     receiptDate: "",
     shortExcess: "",
     dispatchDate: "",
-    qtyDispatch: "",
+    dispatchQty: "",
     shipper: "",
     innerPrinter: "",
     outerPrinter: "",
@@ -86,7 +86,7 @@ const OrderProcessForm = () => {
     additionalPrinter: "",
     innersize: "",
     outersize: "",
-    // stage: ""
+    stage: ""
   });
 
   const handleFileChange = (e) => {
@@ -116,28 +116,22 @@ const OrderProcessForm = () => {
     return (qty * rate).toFixed(2);
   }, [formData.qty, formData.rate]);
   
-useEffect(() => {
+
+  useEffect(() => {
     const fetchBrands = async () => {
       try {
         const res = await axios.get("http://localhost:5000/api/brands");
-        console.log('Raw brand data:', res.data); // Debug log
-        
-        const brandOptions = res.data
-          .filter(b => b && b.brandName) // Filter out null/undefined entries
-          .map((b) => ({
-            value: b.brandName,
-            label: b.brandName,
-          }));
-        
-        console.log('Processed brand options:', brandOptions); // Debug log
+        const brandOptions = res.data.map((b) => ({
+          value: b.brandName,
+          label: b.brandName,
+        }));
         setBrands(brandOptions);
       } catch (error) {
         console.error("Error fetching brands:", error);
       }
     };
     fetchBrands();
-}, []);
-    
+  }, []);
 
   useEffect(() => {
     const fetchConcernedPersons = async () => {
@@ -175,7 +169,7 @@ useEffect(() => {
     if (!selectedBrand) return;
 
     try {
-      const res = await axios.post("http://localhost:5000/api/orders", {
+      const res = await axios.post("http://localhost:5000/api/getBrandDetails", {
         brandName: selectedBrand,
       });
 
@@ -219,7 +213,7 @@ useEffect(() => {
     3: ["approvedArtwork"],
     4: ["poNumber", "poDate", "innerOrder", "outerOrder", "foilTubeOrder", "additionalOrder"],
     5: ["receiptDate", "shortExcess"],
-    6: ["dispatchDate", "qtyDispatch", "shipper"]
+    6: ["dispatchDate", "dispatchQty", "shipper"]
   };
 
   const nextStep = async () => {
@@ -277,42 +271,66 @@ useEffect(() => {
   };
 
   const handleSubmit = async () => {
-    const requiredFields = [...requiredFieldsByStep[1]];
-    if (formData.productStatus === "New") requiredFields.push("designer");
+  const requiredFields = [...requiredFieldsByStep[1]];
+  if (formData.productStatus === "New") requiredFields.push("designer");
+  const stage = Number(formData.stage) || 0;
 
-    for (let field of requiredFields) {
-      if (!formData[field]) {
-        alert(`Please fill the required field: ${field}`);
-        return;
-      }
+  for (let field of requiredFields) {
+    if (!formData[field]) {
+      alert(`Please fill the required field: ${field}`);
+      return;
     }
-
-    try {
-      const data = new FormData();
-      data.amount = amount;
-      Object.entries(formData).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          data.append(key, typeof value === 'object' ? JSON.stringify(value) : value);
-        }
-      });
-    
-      if (artworkFile) data.append("artwork", artworkFile);
-    
-      data.set("stage", currentStep);
-      data.set("amount", amount);
-    
-      const res = await axios.post("http://localhost:5000/api/saveProgress", data, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-    
-      alert("Order submitted successfully!");
-      navigate("/view-orders");
-    } catch (err) {
-      console.error("Submission failed:", err);
-      alert("Failed to submit order."); 
-    }
-    
   }
+
+  try {
+    const data = new FormData();
+
+    Object.entries(formData).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        data.append(key, typeof value === 'object' ? JSON.stringify(value) : value);
+      }
+    });
+
+    if (artworkFile) data.append("artwork", artworkFile);
+
+    let step = 0;
+    data.set("stage", 0);
+
+    if (stage === 0) {
+      step = 1;
+    } else if (stage === 1 && formData.productStatus === 'repeat') {
+      step = 2;
+    } else if (stage === 1 && formData.productStatus === 'New') {
+      step = 3;
+    } else if (stage === 2 || stage === 3) {
+      step = 4;
+    } else if (stage === 4) {
+      step = 5;
+    } else if (stage === 5) {
+      step = 6;
+    } else if (stage === 6) {
+      step = 7;
+    } else if (stage === 7) {
+      step = 8;
+    } else if (stage === 8) {
+      step = 9;
+    }
+
+    data.set("stage", step);
+    data.set("amount", amount);
+
+    const res = await axios.post("http://localhost:5000/api/saveProgress", data, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+
+    alert("Order submitted successfully!");
+    navigate("/view-orders");
+  } catch (err) {
+    console.error("Submission failed:", err);
+    alert("Failed to submit order.");
+  }
+};
+
   const showForm = (step) => {
     setCurrentStep(step);
     setSearchParams({ stage: step.toString() });
@@ -320,7 +338,7 @@ useEffect(() => {
 
   const steps = [
     {
-      title: "Stage 1: Order Opening Form",
+      title: "Order Opening Form",
       content: (
         <>
           <label>Date</label>
@@ -546,14 +564,14 @@ useEffect(() => {
 
         <div className="form-content">
           <div className="form-step active">
-            <h2>{steps[currentStep - 1].title}</h2>
-            {steps[currentStep - 1].content}
+            <h2>{steps[currentStep - 1]?.title}</h2>
+            {steps[currentStep - 1]?.content}
           </div>
           <div className="form-navigation">
             {/* <button onClick={prevStep} disabled={currentStep === 1}>
             Previous
           </button> */}
-            <button onClick={handleSubmit}>Submit</button>
+            {formData.stage === 8 || <button onClick={handleSubmit}>Submit</button>}
 
           </div>
         </div>

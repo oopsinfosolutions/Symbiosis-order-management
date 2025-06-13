@@ -106,6 +106,7 @@ const ViewOrders = () => {
             <th>Client</th>
             <th>Quantity</th>
             <th>MRP</th>
+            <th>Stage</th>
             {/* <th>Status</th> */}
             <th>
             <div className="flex flex-col">
@@ -136,6 +137,7 @@ const ViewOrders = () => {
                 <td>{order.clientName}</td>
                 <td>{order.qty}</td>
                 <td>{order.mrp}</td>
+                <td>{order.stage}</td>
                 <td>{order.productStatus}</td>
                 <td>
                     {/* <button

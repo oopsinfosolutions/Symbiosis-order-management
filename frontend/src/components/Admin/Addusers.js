@@ -11,6 +11,7 @@ function Addusers() {
     phone: "",
     password: "",
     confirmPassword: "",
+    type: ""
   });
 
   const navigate = useNavigate();
@@ -118,6 +119,17 @@ function Addusers() {
             onChange={handleChange}
             required
           />
+          <label htmlFor="type"></label>
+          <select
+            id="type"
+            value={formData.type}
+            onChange={handleChange}
+            required
+          >
+            <option value="">Select Role</option>
+            <option value="employee">Employee</option>
+            <option value="designer">Designer</option>
+          </select>
           <button type="submit" className="btn primary">Add User</button>
         </form>
       </div>

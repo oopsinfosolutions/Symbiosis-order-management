@@ -1,19 +1,23 @@
 import React from "react";
 import "../../components/Sidebar.css";
-
-
+import { Link, useNavigate } from "react-router-dom";
 
 const Nav = () => {
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    sessionStorage.clear();
+    navigate("/login");
+  };
+
   const menuItems = [
     { name: "All Orders", link: "/view-all-orders" },
     { name: "Sections", link: "/sections" },
     { name: "Printers", link: "/printers" },
-
     { name: "Add Users", link: "/Addusers" },
-    { name: "Update Users", link: "/Updateusers" },
-    { name: "List Users", link: "/Listusers" },
+    { name: "All Users", link: "/Updateusers" },
     { name: "Delete Users", link: "/Deleteusers" },
-    { name: "Form Progress", link: "/ConcernedPersonsList" },
+    { name: "Logout", action: handleLogout },
   ];
 
   return (
@@ -24,10 +28,15 @@ const Nav = () => {
       <ul className="menu">
         {menuItems.map((item, index) => (
           <li key={index} className="menu-item">
-            <a href={item.link} className="menu-link">
-              {item.icon}
-              <span>{item.name}</span>
-            </a>
+            {item.link ? (
+              <Link to={item.link} className="menu-link">
+                <span>{item.name}</span>
+              </Link>
+            ) : (
+              <button onClick={item.action} className="menu-link logout-button">
+                <span>{item.name}</span>
+              </button>
+            )}
           </li>
         ))}
       </ul>

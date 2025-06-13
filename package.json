@@ -1,10 +1,49 @@
 {
-  "dependencies": {
-    "@react-navigation/native": "^7.1.9",
-    "@react-navigation/native-stack": "^7.3.13",
-    "axios": "^1.9.0",
-    "react-native-paper": "^5.14.5",
-    "react-native-vector-icons": "^10.2.0",
-    "react-router-dom": "^7.6.2"
-  }
+    "name": "symbiosis-management-system",
+    "version": "1.0.0",
+    "description": "Symbiosis Order Management Desktop App",
+    "author": "Ankita - Oops InfoSolutions",
+    "main": "main.js",
+    "scripts": {
+        "start": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+        "dev:frontend": "cd frontend && npm start",
+        "dev:backend": "cd backend && node server.js",
+        "electron-dev": "wait-on http://localhost:3000 && electron .",
+        "build": "cd frontend && npm run build",
+        "pack": "electron-builder --dir",
+        "dist": "electron-builder"
+    },
+    "dependencies": {
+        "@react-navigation/native": "^7.1.9",
+        "@react-navigation/native-stack": "^7.3.13",
+        "axios": "^1.9.0",
+        "react-native-paper": "^5.14.5",
+        "react-native-vector-icons": "^10.2.0",
+        "react-router-dom": "^7.6.2"
+    },
+    "devDependencies": {
+        "concurrently": "^9.1.2",
+        "electron": "^25.8.3",
+        "electron-builder": "^26.0.12",
+        "wait-on": "^8.0.3"
+    },
+    "build": {
+        "appId": "com.symbiosis.desktopapp",
+        "productName": "Symbiosis Order Manager",
+        "directories": {
+            "output": "dist"
+        },
+        "files": [
+            "main.js",
+            "backend/**/*",
+            "frontend/build/**/*",
+            "!backend/.env"
+        ],
+        "extraResources": [
+            {
+                "from": "./backend/uploads",
+                "to": "uploads"
+            }
+        ]
+    }
 }

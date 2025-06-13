@@ -180,8 +180,8 @@ const Stage6 = ({ formData, handleChange, handleBrandChange, handleBrandCreate, 
         <span className="block font-semibold mb-1">Quantity Dispatched</span>
         <input
           type="number"
-          name="qtyDispatch"
-          value={formData.qtyDispatch}
+          name="dispatchQty"
+          value={formData.dispatchQty}
           onChange={handleChange}
           className="w-full border p-2"
         />
