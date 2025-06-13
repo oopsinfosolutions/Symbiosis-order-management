@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import DNav from './DNav';
 import axios from "axios";
 import Stage3 from "../Stages/Stage3";
+import Stage2 from "../Stages/Stage2";
 import { useNavigate, useSearchParams, useParams, useLocation } from "react-router-dom";
 
 const ADDArtWork = () => {
@@ -66,7 +67,7 @@ const ADDArtWork = () => {
     receiptDate: "",
     shortExcess: "",
     dispatchDate: "",
-    dispatchQty: "",
+    qtyDispatch: "",
     shipper: "",
     innerPrinter: "",
     outerPrinter: "",
@@ -236,8 +237,8 @@ const ADDArtWork = () => {
 
   const steps = [
     {
-      title: "Stage 3: Packing Material Status",
-      content: <Stage3 formData={formData} handleChange={handleChange} />
+      title: "Stage 2: Packing Material Status",
+      content: <Stage2 formData={formData} handleChange={handleChange} />
     }
   ];
 

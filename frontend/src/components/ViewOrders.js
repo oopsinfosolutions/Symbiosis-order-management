@@ -106,7 +106,10 @@ const ViewOrders = () => {
             <th>Client</th>
             <th>Quantity</th>
             <th>MRP</th>
+<<<<<<< HEAD
             <th>Stage</th>
+=======
+>>>>>>> 64e283357dca824897a8321fec7aa76b24802621
             {/* <th>Status</th> */}
             <th>
             <div className="flex flex-col">
