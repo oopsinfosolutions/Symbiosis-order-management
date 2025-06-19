@@ -42,6 +42,7 @@ setTotalPages(Math.ceil(fetchedOrders.length / itemsPerPage));
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentOrders = filteredOrders.slice(indexOfFirstItem, indexOfLastItem);
+  console.log(currentOrders)
 
   const handlePrevious = () => {
     if (currentPage > 1) setCurrentPage(currentPage - 1);
@@ -51,18 +52,20 @@ setTotalPages(Math.ceil(fetchedOrders.length / itemsPerPage));
     if (currentPage < totalPages) setCurrentPage(currentPage + 1);
   };
 
-  const handleOrderAction = (orderId) => {
+  const handleOrderAction = (order) => {
   let nextStage = 2;
    axios
       .post("http://localhost:5000/api/orders/edit-status", {
-        orderId: orderId,
+        orderId: order.id,
         status: "New",
       })
       .then((res) => {
         console.log("Status update sent:", res.data);
-  
+
+        console.log( order)
         // Pass order data using state
-        navigate(`/multiform/${orderId}?stage=${nextStage}`);
+        navigate(`/add_artwork/${order.id}`, { state: { order } });
+
       })
       .catch((err) => {
         console.error("Failed to send edit info:", err);
@@ -150,7 +153,7 @@ setTotalPages(Math.ceil(fetchedOrders.length / itemsPerPage));
                               <td>
                                 <button
                                   className="btn-design"
-                                  onClick={() => handleOrderAction(order.id)}
+                                  onClick={() => handleOrderAction(order)}
                                 >
                                   Start Design
                          </button>
@@ -333,6 +336,6 @@ setTotalPages(Math.ceil(fetchedOrders.length / itemsPerPage));
           }
         }
       `}</style>
-    </>
-  );
+ </>
+ );
 }

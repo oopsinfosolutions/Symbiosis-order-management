@@ -4,14 +4,22 @@
     "description": "Symbiosis Order Management Desktop App",
     "author": "Ankita - Oops InfoSolutions",
     "main": "main.js",
+    "homepage": "./",
     "scripts": {
         "start": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
         "dev:frontend": "cd frontend && npm start",
         "dev:backend": "cd backend && node server.js",
         "electron-dev": "wait-on http://localhost:3000 && electron .",
         "build": "cd frontend && npm run build",
+        "build-win": "npm run build && electron-builder --win",
+        "build-mac": "npm run build && electron-builder --mac",
+        "build-linux": "npm run build && electron-builder --linux",
         "pack": "electron-builder --dir",
-        "dist": "electron-builder"
+        "dist": "npm run build && electron-builder",
+        "dist-all": "npm run build && electron-builder --win --mac --linux",
+        "frontend:start": "react-scripts start",
+        "frontend:build": "react-scripts build",
+        "electron": "electron ."
     },
     "dependencies": {
         "@react-navigation/native": "^7.1.9",
@@ -23,8 +31,9 @@
     },
     "devDependencies": {
         "concurrently": "^9.1.2",
-        "electron": "^25.8.3",
+        "electron": "^25.9.8",
         "electron-builder": "^26.0.12",
+        "electron-packager": "^17.1.2",
         "wait-on": "^8.0.3"
     },
     "build": {
@@ -35,15 +44,56 @@
         },
         "files": [
             "main.js",
-            "backend/**/*",
-            "frontend/build/**/*",
-            "!backend/.env"
+            "package.json",
+            "backend//*",
+            "frontend/build//*",
+            "!backend/.env",
+            "!backend/node_modules",
+            "!frontend/node_modules",
+            "!frontend/src",
+            "!frontend/public"
         ],
         "extraResources": [
             {
                 "from": "./backend/uploads",
                 "to": "uploads"
             }
-        ]
+        ],
+        "win": {
+            "target": [
+                {
+                    "target": "nsis",
+                    "arch": [
+                        "x64"
+                    ]
+                },
+                {
+                    "target": "portable",
+                    "arch": [
+                        "x64"
+                    ]
+                }
+            ]
+        },
+        "nsis": {
+            "oneClick": false,
+            "allowToChangeInstallationDirectory": true,
+            "createDesktopShortcut": true,
+            "createStartMenuShortcut": true,
+            "shortcutName": "Symbiosis Order Manager"
+        },
+        "mac": {
+            "target": "dmg",
+            "icon": "assets/icon.icns",
+            "category": "public.app-category.business"
+        },
+        "linux": {
+            "target": [
+                "AppImage",
+                "deb"
+            ],
+            "icon": "assets/icon.png",
+            "category": "Office"
+        }
     }
 }

@@ -76,7 +76,7 @@ router.get("/concerned-persons", async (req, res) => {
 });
 
 // Save Progress (Insert or Update) - FIXED VERSION
-router.post('/saveProgress', upload.single("artwork"), async(req, res) => {
+router.post('/saveProgress', upload.single("artworkFile"), async(req, res) => {
     const data = req.body;
     console.log(data);
 
@@ -304,8 +304,8 @@ router.get('/designer-orders', async (req, res) => {
     res.json({ orders });
   } catch (error) {
     console.error("Error fetching designer orders:", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
+    res.status(500).json({ error: "Internal server error" });
+}
 });
 
 router.post('/export-orders', async (req, res) => {

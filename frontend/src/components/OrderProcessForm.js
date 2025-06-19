@@ -30,6 +30,8 @@ const OrderProcessForm = () => {
   const location = useLocation();
   const order = location.state?.order;
 
+  const empId = sessionStorage.getItem("id");
+
   useEffect(() => {
     const fetchOrder = async () => {
       try {
@@ -295,23 +297,34 @@ const OrderProcessForm = () => {
 
     let step = 0;
     data.set("stage", 0);
+    let status = formData.productStatus;
 
     if (stage === 0) {
       step = 1;
+      if (formData.productStatus === 'repeat') {
+    navigate(`/view-orders/${empId}?stage=1&status=repeat`);
+  } else {
+    navigate(`/view-orders/${empId}?stage=1&status=New`);
+  }
     } else if (stage === 1 && formData.productStatus === 'repeat') {
       step = 2;
+      navigate(`/view-orders/${empId}?fromStages=2,3`);
     } else if (stage === 1 && formData.productStatus === 'New') {
       step = 3;
+      navigate(`/view-orders/${empId}?fromStages=2,3`);
     } else if (stage === 2 || stage === 3) {
       step = 4;
+      navigate(`/printers?stage=4`);
     } else if (stage === 4) {
       step = 5;
     } else if (stage === 5) {
       step = 6;
+      navigate(`/view-orders/${empId}?stage=${stage+1}`)
     } else if (stage === 6) {
       step = 7;
     } else if (stage === 7) {
       step = 8;
+      navigate(`/view-orders/${empId}?stage=${stage+1}`)
     } else if (stage === 8) {
       step = 9;
     }
@@ -324,7 +337,6 @@ const OrderProcessForm = () => {
     });
 
     alert("Order submitted successfully!");
-    navigate("/view-orders");
   } catch (err) {
     console.error("Submission failed:", err);
     alert("Failed to submit order.");
@@ -338,7 +350,7 @@ const OrderProcessForm = () => {
 
   const steps = [
     {
-      title: "Order Opening Form",
+      title: "ORDER OPENING FORM",
       content: (
         <>
           <label>Date</label>

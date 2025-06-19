@@ -197,7 +197,7 @@ const stageFilter = stageParam?.includes(",")
 
     if (order.stage === 1 && productStatus === "repeat") {
       nextStage = 2; // Packing Material Status
-    } else if (order.stage === 1 && productStatus === "new") {
+    } else if (order.stage === 1 && productStatus === "New") {
       nextStage = 3; // Artwork Status
     } else if (order.stage === 2 || order.stage === 3) {
       nextStage = 4; // Packing Material Order Form
@@ -489,7 +489,6 @@ const stageFilter = stageParam?.includes(",")
                         </span>
                       </td>
                       {order.stage !== 8 && <td className="py-2 px-4 border">
-                        {category}
                         {(category === 'printers' || category === 'sections') ? (
                           <button
                             className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"

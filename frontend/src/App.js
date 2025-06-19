@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { HashRouter as Router, Routes, Route } from "react-router-dom";
 import OrderProcessForm from "./components/OrderProcessForm";
 import ViewOrders from "./components/ViewOrders";
 import Login from "./components/Login";
@@ -41,7 +41,7 @@ function App() {
           <Route path="/multiform/:id" element={<OrderProcessForm />} />
           <Route path="/DesignerPage" element={<DesignerPage />} />
           <Route path="/ADD_ArtWork" element={<ADD_ArtWork />} />
-          <Route path="/multiform/:id" element={<OrderProcessForm />} />
+          <Route path="/ADD_ArtWork/:id" element={<ADD_ArtWork />} />
         </Routes>
       </Router>
     </AuthProvider>
