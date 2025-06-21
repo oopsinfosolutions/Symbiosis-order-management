@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import DNav from "./DNav";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 
 export default function DesignerPage() {
   const [orders, setOrders] = useState([]);
@@ -9,40 +9,52 @@ export default function DesignerPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [activeDesigner, setActiveDesigner] = useState("Home");
   const itemsPerPage = 5;
   const navigate = useNavigate();
+  const location = useLocation();
+  const isAllPage = location.pathname.includes("/DesignerPage/all");
+
+  const fetchOrders = async (designerFilter = null) => {
+    setLoading(true);
+    try {
+      let params;
+
+      if (isAllPage && designerFilter && designerFilter !== "Home") {
+        params.designer = designerFilter;
+      } else {
+        const fullname = sessionStorage.getItem("fullname");
+        params.fullname = fullname;
+      }
+
+      const response = await axios.get(`http://localhost:5000/api/designer-orders`, { params });
+      const fetchedOrders = Array.isArray(response.data.orders) ? response.data.orders : [];
+      setFilteredOrders(fetchedOrders);
+      setTotalPages(Math.ceil(fetchedOrders.length / itemsPerPage));
+    } catch (error) {
+      console.error("Error fetching designer orders:", error);
+      setFilteredOrders([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchOrders = async () => {
-      setLoading(true);
-      try {
-        const fullname = sessionStorage.getItem("fullname");
-        console.log(fullname)
-
-const response = await axios.get(`http://localhost:5000/api/designer-orders`, {
-  params: { fullname }
-});
-
-
-const fetchedOrders = Array.isArray(response.data.orders) ? response.data.orders : [];
-setFilteredOrders(fetchedOrders);
-setTotalPages(Math.ceil(fetchedOrders.length / itemsPerPage));
-
-      } catch (error) {
-        console.error("Error fetching designer orders:", error);
-        setFilteredOrders([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchOrders();
+    if (isAllPage) {
+      fetchOrders(activeDesigner);
+    } else {
+      fetchOrders();
+    }
   }, []);
+
+  const handleDesignerFilter = (designer) => {
+    setActiveDesigner(designer);
+    fetchOrders(designer);
+  };
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentOrders = filteredOrders.slice(indexOfFirstItem, indexOfLastItem);
-  console.log(currentOrders)
 
   const handlePrevious = () => {
     if (currentPage > 1) setCurrentPage(currentPage - 1);
@@ -53,48 +65,41 @@ setTotalPages(Math.ceil(fetchedOrders.length / itemsPerPage));
   };
 
   const handleOrderAction = (order) => {
-  let nextStage = 2;
-   axios
+    axios
       .post("http://localhost:5000/api/orders/edit-status", {
         orderId: order.id,
         status: "New",
       })
       .then((res) => {
-        console.log("Status update sent:", res.data);
-
-        console.log( order)
-        // Pass order data using state
         navigate(`/add_artwork/${order.id}`, { state: { order } });
-
       })
       .catch((err) => {
         console.error("Failed to send edit info:", err);
       });
-};
+  };
 
- const exportToExcel = async () => {
-  try {
-    const response = await axios.post(
-      'http://localhost:5000/api/orders/export-orders',
-      { orders: filteredOrders },
-      {
-        responseType: 'blob', // Important to handle binary file
-      }
-    );
+  const exportToExcel = async () => {
+    try {
+      const response = await axios.post(
+        'http://localhost:5000/api/orders/export-orders',
+        { orders: filteredOrders },
+        {
+          responseType: 'blob',
+        }
+      );
 
-    // Create a URL for the downloaded file
-    const url = window.URL.createObjectURL(new Blob([response.data]));
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', 'designer_orders.xlsx'); // File name
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-  } catch (error) {
-    console.error('Export failed:', error);
-    alert('Failed to export orders to Excel');
-  }
-};
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'designer_orders.xlsx');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error('Export failed:', error);
+      alert('Failed to export orders to Excel');
+    }
+  };
 
   return (
     <>
@@ -105,12 +110,26 @@ setTotalPages(Math.ceil(fetchedOrders.length / itemsPerPage));
         <div className="form-section">
           <div className="designer-container">
             <div className="designer-content">
-              <h2>Your Orders - Design Stage</h2>
+              <h2 className="page-title">Your Orders - Design Stage</h2>
 
               {loading ? (
                 <div className="loading">Loading orders...</div>
               ) : (
                 <>
+                  {isAllPage && (
+                    <div className="topnav">
+                      {["Home", "Symbiosis", "Tejas", "NK"].map((designer) => (
+                        <button
+                          key={designer}
+                          onClick={() => handleDesignerFilter(designer)}
+                          className={`topnav-btn ${activeDesigner === designer ? "active" : ""}`}
+                        >
+                          {designer}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
                   {filteredOrders.length === 0 ? (
                     <div className="no-orders">No orders found for design stage.</div>
                   ) : (
@@ -156,7 +175,7 @@ setTotalPages(Math.ceil(fetchedOrders.length / itemsPerPage));
                                   onClick={() => handleOrderAction(order)}
                                 >
                                   Start Design
-                         </button>
+                                </button>
                               </td>
                             </tr>
                           ))}
@@ -204,138 +223,40 @@ setTotalPages(Math.ceil(fetchedOrders.length / itemsPerPage));
       </div>
 
       <style jsx>{`
-        .designer-container {
-          padding: 20px;
-          max-width: 1200px;
-          margin: 0 auto;
-        }
-
-        .designer-content {
-          background: white;
-          border-radius: 8px;
-          padding: 24px;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .loading, .no-orders {
-          text-align: center;
-          padding: 40px;
-          color: #666;
-        }
-
-        .orders-table {
-          width: 100%;
-          border-collapse: collapse;
-          margin-top: 20px;
-        }
-
-        .orders-table th, .orders-table td {
-          border: 1px solid #ddd;
-          padding: 12px;
-          text-align: center;
-        }
-
-        .orders-table th {
-          background-color: #f5f5f5;
-          color: #333;
-        }
-
-        .status-badge {
-          padding: 4px 8px;
-          border-radius: 4px;
-          font-size: 12px;
-          font-weight: bold;
-          text-transform: uppercase;
-        }
-
-        .status-new {
-          background: #e3f2fd;
-          color: #1976d2;
-        }
-
-        .btn-design {
-          background: #4caf50;
-          color: white;
-          border: none;
-          padding: 8px 14px;
-          border-radius: 4px;
-          cursor: pointer;
-          font-weight: bold;
-        }
-
-        .btn-design:hover {
-          background: #45a049;
-        }
-
-        .pagination {
+        .topnav {
           display: flex;
+          background-color: #333;
+          overflow: hidden;
           justify-content: center;
-          align-items: center;
-          gap: 16px;
-          margin: 24px 0;
+          margin-bottom: 1rem;
         }
 
-        .pagination-btn {
-          background: #2196f3;
-          color: white;
+        .topnav-btn {
           border: none;
-          padding: 8px 16px;
-          border-radius: 4px;
+          outline: none;
+          background-color: inherit;
+          color: white;
+          padding: 14px 20px;
           cursor: pointer;
+          font-size: 17px;
+          transition: background-color 0.3s;
         }
 
-        .pagination-btn:disabled {
-          background: #ccc;
-          cursor: not-allowed;
+        .topnav-btn:hover {
+          background-color: #575757;
         }
 
-        .pagination-btn:hover:not(:disabled) {
-          background: #1976d2;
+        .topnav-btn.active {
+          background-color: #4CAF50;
+          color: white;
         }
 
-        .pagination-info {
-          color: #666;
-          font-weight: bold;
-        }
-
-        .export-section {
+        .page-title {
           text-align: center;
-          margin-top: 24px;
-          padding-top: 24px;
-          border-top: 1px solid #e0e0e0;
-        }
-
-        .btn-export {
-          background: #ff9800;
-          color: white;
-          border: none;
-          padding: 12px 24px;
-          border-radius: 4px;
-          cursor: pointer;
-          font-weight: bold;
-        }
-
-        .btn-export:disabled {
-          background: #ccc;
-          cursor: not-allowed;
-        }
-
-        .btn-export:hover:not(:disabled) {
-          background: #f57c00;
-        }
-
-        @media (max-width: 768px) {
-          .orders-table th, .orders-table td {
-            font-size: 12px;
-            padding: 6px;
-          }
-
-          .btn-design {
-            padding: 6px 10px;
-            font-size: 12px;
-          }
+          font-size: 1.8rem;
+          margin-bottom: 1.5rem;
         }
       `}</style>
- </>
- );
+    </>
+  );
 }

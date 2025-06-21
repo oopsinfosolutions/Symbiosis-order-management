@@ -47,23 +47,18 @@ const stageFilter = stageParam?.includes(",")
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        if (empId !== 'admin') {
-          const res = await axios.get(`http://localhost:5000/api/orders/by-concerned/${empId}`);
-          console.log("Concerned person API response:", res.data);
-          setOrders(Array.isArray(res.data) ? res.data : []);  // 🟢 For non-admin
-          setTotalPages(1); // Optional: if paginating, keep it to 1
+        if (category !== 'view-all-orders') {
+          const res = await axios.get(`http://localhost:5000/api/orders/by-concerned/${empId}?page=${page}&limit=${limit}`);
+          const { orders: pagedOrders = [], totalPages: total = 1 } = res.data;
+          setOrders(Array.isArray(pagedOrders) ? pagedOrders : []);
+          setTotalPages(total);
         } else {
           const [pagedRes, allRes] = await Promise.all([
             axios.get(`http://localhost:5000/api/orders?page=${page}&limit=${limit}`),
-            axios.get("http://localhost:5000/api/orders")  // Get full list (for filter use only)
+            axios.get("http://localhost:5000/api/orders")
           ]);
-
           setOrders(Array.isArray(pagedRes.data.orders) ? pagedRes.data.orders : []);
-          setAllOrders(Array.isArray(allRes.data.orders) ? allRes.data.orders : []);
-
-          const pages = pagedRes.data.totalPages || 1;
-          setTotalPages(pages);
-
+          setTotalPages(pagedRes.data.totalPages || 1);
         }
       } catch (err) {
         console.error("Error fetching orders:", err);
@@ -124,24 +119,13 @@ const stageFilter = stageParam?.includes(",")
 
     } else if (stage === 4) {
       // Packing Material Order Form
-      
       dueDate = poDate ? dayjs(poDate).add(20, "day").startOf("day") : null;
-
-
     } else if (stage === 5) {
-      // Printers
-      dueDate = null;
-
-    } else if (stage === 6) {
       // Receipt details
       dueDate = dayjs(orderDate).add(40, "day").startOf("day");
 
-    } else if (stage === 7) {
+    } else if (stage === 6) {
       // Sections
-      dueDate = null
-
-    } else if (stage === 8) {
-      // Finished Product Dispatch
       dueDate = null;
     }
 
@@ -193,7 +177,6 @@ const stageFilter = stageParam?.includes(",")
     const { id, productStatus } = order;
 
     let nextStage;
-    console.log(order)
 
     if (order.stage === 1 && productStatus === "repeat") {
       nextStage = 2; // Packing Material Status
@@ -223,16 +206,14 @@ const stageFilter = stageParam?.includes(",")
         status: productStatus,
       })
       .then((res) => {
-        console.log("Status update sent:", res.data);
-        if (order.stage === 2 || order.stage === 3) {
+        if(order.stage === 1 && order.productStatus === "New"){
+          console.log("isithereeee")
+          navigate(`/multiform/${id}?stage=${2}`, { state: { order } });
+        } else if (order.stage === 2 || order.stage === 3) {
           navigate(`/multiform/${id}?stage=${3}`, { state: { order } });
         } else if (order.stage === 4) {
-          navigate(`/printers`, { state: { order } });
-        } else if (order.stage === 5) {
           navigate(`/multiform/${id}?stage=${4}`, { state: { order } });
-        } else if (order.stage === 6) {
-          navigate(`/sections`, { state: { order } });
-        } else if (order.stage === 7) {
+        } else if (order.stage === 5) {
           navigate(`/multiform/${id}?stage=${5}`, { state: { order } });
         } else {
           navigate(`/multiform/${id}?stage=${nextStage}`, { state: { order } });
@@ -333,13 +314,9 @@ const stageFilter = stageParam?.includes(",")
     case 4:
       return "Printers (20 days from PO)";
     case 5:
-      return "Receipt Details";
-    case 6:
       return "Sections (40 days)";
-    case 7:
+    case 6:
       return "Finished Product Dispatch";
-    case 8:
-      return "Dispatched Products";
     default:
       return "";
   }
@@ -452,12 +429,11 @@ const stageFilter = stageParam?.includes(",")
                       </select>
                     </div>
                   </th>
-                  {stageFilter !== 8 && <th className="py-2 px-4 border">Actions</th>}
+                  {stageFilter !== 6 && <th className="py-2 px-4 border">Actions</th>}
                 </tr>
               </thead>
               <tbody>
                 {filteredOrders.map((order) => {
-                  console.log(order)
                   const { label, color } = getStatus(order.date, order.productStatus, order.stage, order.poDate);
                   return (
                     <tr key={order._id}>
@@ -488,22 +464,13 @@ const stageFilter = stageParam?.includes(",")
                           {label}
                         </span>
                       </td>
-                      {order.stage !== 8 && <td className="py-2 px-4 border">
-                        {(category === 'printers' || category === 'sections') ? (
-                          <button
-                            className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
-                            onClick={() => handleComplete(order)}
-                          >
-                            Complete
-                          </button>
-                        ) : (
+                      {order.stage !== 6 && <td className="py-2 px-4 border">
                           <button
                             className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
                             onClick={() => handleEditOrder(order)}
                           >
                             View
                           </button>
-                        )}
                       </td>}
                     </tr>
                   );

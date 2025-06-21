@@ -201,7 +201,7 @@ app.put('/updateusers', async (req, res) => {
 // Sync database and start server
 sequelize.sync().then(() => {
   console.log("Database synced");
-  app.listen(PORT, '0.0.0.0', () => {
+  app.listen(PORT, 'localhost', () => {
     console.log(`Server running at http://0.0.0.0:${PORT}`);
   });
 }).catch(err => {

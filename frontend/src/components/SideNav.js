@@ -22,11 +22,8 @@ const SideNav = () => {
   { stage: 3, status: "New", label: "Artwork Status" },
   { stage: 4, label: "Packing Material Order form" },
   { stage: 5, label: "Printers" },
-  { stage: 6, label: "Receipt Details" },
-  { stage: 7, label: "Sections" },
-  { stage: 8, label: "Finished Product Dispatched" },
-  { stage: 9, label: "Dispatched Orders" }
-
+  { stage: 6, label: "Sections" },
+  { stage: 7, label: "Finished Product Dispatched" },
 ];
 
 const menuItems = [
@@ -51,7 +48,7 @@ const menuItems = [
         };
       }
 
-      // ✅ Stage 4: unified, fetch from both stage 2 and 3
+      //  Stage 4: unified, fetch from both stage 2 and 3
       if (stage === 4) {
   return {
     name: label,
@@ -67,21 +64,21 @@ const menuItems = [
       }
 
       // Stage 7: from stage 6
-      if (stage === 7) {
+      if (stage === 6) {
         return {
           name: label,
-          link: `/sections?stage=6`
+          link: `/sections?stage=5`
         };
       }
 
-      // Default: direct stage mapping
+      // Default: direct stage mapping   
       return {
         name: label,
         link: `/view-orders/${empId}?stage=${stage-1}`
       };
     })
   },
-  { name: "All Orders", link: `/view-orders` },
+  { name: "All Orders", link: `/view-all-orders` },
   { name: "Logout", action: handleLogout }
 ];
 
@@ -90,7 +87,7 @@ const menuItems = [
       <div className="logo">
         <h1>Emp panel</h1>
       </div>
-      <ul className="menu">
+      <ul className="menu"> 
         {menuItems.map((item, index) => (
           <li key={index} className="menu-item">
             {item.submenu ? (

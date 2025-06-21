@@ -21,8 +21,6 @@ const DNav = () => {
     { name: "Add ArtWork", link: "/ADD_ArtWork" },
     { name: "My Orders", link: "/DesignerPage" },
     { name: "All Orders", link: "/DesignerPage/all" },
-    { name: "Tejas", link: "/DesignerPage/" },
-    { name: "NK", link: "/DesignerPage" },
     { name: "Logout", action: handleLogout }, // No link, uses action
   ];
 

@@ -29,7 +29,8 @@ function createWindow() {
     // Development mode
     win.webContents.openDevTools();
 
-    win.loadURL("http://localhost:3000").catch(err => {
+win.loadFile(path.join(__dirname, 'frontend/build/index.html'))
+      .catch(err => {
       console.error("Failed to load React dev server:", err);
       win.loadURL(`data:text/html,<h1>Please start React dev server first: npm start</h1>`);
     });

@@ -532,7 +532,7 @@ const OrderProcessForm = () => {
       ),
     },
     ...(formData.productStatus === "repeat"
-      ? [{ title: "ORDER OPENING FORM", content: <Stage2 formData={formData} handleChange={handleChange} /> }]
+      ? [{ title: "PACKING MATERIAL STATUS", content: <Stage2 formData={formData} handleChange={handleChange} /> }]
       : formData.productStatus === "New" //handleFileChange={handleFileChange} artworkFile={artworkFile} formData={formData}
       ? [{ title: "PACKING MATERIAL ARTWORK STATUS ", content: <Stage3 formData={formData} handleFileChange={handleFileChange} artworkFile={artworkFile} /> }]
       : []),
