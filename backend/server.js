@@ -198,10 +198,19 @@ app.put('/updateusers', async (req, res) => {
   }
 });
 
+// Serve static frontend (React)
+// app.use(express.static(path.join(__dirname, '../frontend/build')));
+
+// // Fallback for client-side routes
+// app.get('*', (req, res) => {
+//   res.sendFile(path.join(__dirname, '../frontend/build', 'index.html'));
+// });
+
+
 // Sync database and start server
 sequelize.sync().then(() => {
   console.log("Database synced");
-  app.listen(PORT, 'localhost', () => {
+  app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running at http://0.0.0.0:${PORT}`);
   });
 }).catch(err => {

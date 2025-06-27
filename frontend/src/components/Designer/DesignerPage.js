@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import DNav from "./DNav";
 import { Link, useNavigate, useLocation } from "react-router-dom";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 
 export default function DesignerPage() {
   const [orders, setOrders] = useState([]);
@@ -18,7 +20,7 @@ export default function DesignerPage() {
   const fetchOrders = async (designerFilter = null) => {
     setLoading(true);
     try {
-      let params;
+      let params = {};
 
       if (isAllPage && designerFilter && designerFilter !== "Home") {
         params.designer = designerFilter;
@@ -27,7 +29,7 @@ export default function DesignerPage() {
         params.fullname = fullname;
       }
 
-      const response = await axios.get(`http://localhost:5000/api/designer-orders`, { params });
+      const response = await axios.get(`http://192.168.1.11:5000/api/designer-orders`, { params });
       const fetchedOrders = Array.isArray(response.data.orders) ? response.data.orders : [];
       setFilteredOrders(fetchedOrders);
       setTotalPages(Math.ceil(fetchedOrders.length / itemsPerPage));
@@ -66,7 +68,7 @@ export default function DesignerPage() {
 
   const handleOrderAction = (order) => {
     axios
-      .post("http://localhost:5000/api/orders/edit-status", {
+      .post("http://192.168.1.11:5000/api/orders/edit-status", {
         orderId: order.id,
         status: "New",
       })
@@ -78,27 +80,29 @@ export default function DesignerPage() {
       });
   };
 
-  const exportToExcel = async () => {
-    try {
-      const response = await axios.post(
-        'http://localhost:5000/api/orders/export-orders',
-        { orders: filteredOrders },
-        {
-          responseType: 'blob',
-        }
-      );
+  const exportToExcel = () => {
+    const exportData = filteredOrders.map(order => ({
+      "Order ID": order.id,
+      "Date": order.date?.split("T")[0],
+      "Brand Name": order.brandName,
+      "Quantity": order.qty,
+      "Rate": order.rate,
+      "Amount": order.amount,
+      "Product Status": order.productStatus,
+    }));
 
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', 'designer_orders.xlsx');
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-    } catch (error) {
-      console.error('Export failed:', error);
-      alert('Failed to export orders to Excel');
-    }
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Orders");
+
+    const excelBuffer = XLSX.write(workbook, {
+      bookType: "xlsx",
+      type: "array",
+    });
+
+    const data = new Blob([excelBuffer], { type: "application/octet-stream" });
+    saveAs(data, `orders_${new Date().toISOString().slice(0, 10)}.xlsx`);
+
   };
 
   return (

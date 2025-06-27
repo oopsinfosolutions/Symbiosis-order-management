@@ -76,7 +76,7 @@ router.get("/concerned-persons", async (req, res) => {
 });
 
 // Save Progress (Insert or Update) - FIXED VERSION
-router.post('/saveProgress', upload.single("artworkFile"), async(req, res) => {
+router.post('/saveProgress', upload.single("artwork"), async(req, res) => {
     const data = req.body;
     console.log(data);
 
@@ -238,28 +238,41 @@ router.post('/getBrandDetails', async(req, res) => {
 });
 
 // Get orders by concerned person
-router.get('/by-concerned/:empId', async (req, res) => {
-    const { empId } = req.params;
-    console.log("empId:", empId);
-  
-    try {
-        const sql = `
-            SELECT * FROM orders
-            WHERE concernedPerson = :empId
-            ORDER BY id DESC
-        `;
+router.get("/orders/by-concerned/:empId", async (req, res) => {
+  const empId = req.params.empId;
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 20;
+  const offset = (page - 1) * limit;
 
-        const [results] = await db.query(sql, {
-            replacements: { empId },
-        });
-  
-        res.json(results);
-    } catch (err) {
-        console.error("Error fetching orders for concerned person:", err);
-        res.status(500).json({ message: "Failed to fetch concerned orders" });
-    }
+  try {
+    // Total count
+    const [countResult] = await db.query(
+      "SELECT COUNT(*) as count FROM orders WHERE concernedPerson = ?",
+      {
+        replacements: [empId],
+      }
+    );
+
+    const count = countResult?.count || 0;
+
+    // Paged orders
+    const [orders] = await db.query(
+      "SELECT * FROM orders WHERE concernedPerson = ? ORDER BY id DESC LIMIT ? OFFSET ?",
+      {
+        replacements: [empId, limit, offset],
+      }
+    );
+
+    res.json({
+      orders,
+      currentPage: page,
+      totalPages: Math.max(1, Math.ceil(count / limit)),
+    });
+  } catch (err) {
+    console.error("Error fetching concerned orders:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
 });
-
 // Edit order status
 router.post("/edit-status", async (req, res) => {
     const { orderId, status } = req.body;
@@ -291,21 +304,43 @@ router.get('/designer', (req, res) => {
 });
 
 router.get('/designer-orders', async (req, res) => {
-  const fullname = req.query.fullname;
-  if (!fullname) return res.status(400).json({ error: "Missing fullname" });
+  const { fullname, designer } = req.query;
 
-  try {
-    const orders = await Order.findAll({
-      where: {
-        designer: fullname,
-        stage: 1,
-      },
-    });
-    res.json({ orders });
-  } catch (error) {
-    console.error("Error fetching designer orders:", error);
-    res.status(500).json({ error: "Internal server error" });
-}
+  // Case: filter by designer (for /DesignerPage/all)
+  if (designer) {
+    try {
+      const orders = await Order.findAll({
+        where: {
+          designer: designer,
+          stage: 1, // or 2, depending on your flow
+        },
+        order: [['id', 'DESC']],
+      });
+      return res.json({ orders });
+    } catch (error) {
+      console.error("Error fetching orders by designer:", error);
+      return res.status(500).json({ error: "Internal server error" });
+    }
+  }
+
+  // Case: logged-in user's fullname
+  if (fullname) {
+    try {
+      const orders = await Order.findAll({
+        where: {
+          designer: fullname,
+          stage: 1,
+        },
+        order: [['id', 'DESC']],
+      });
+      return res.json({ orders });
+    } catch (error) {
+      console.error("Error fetching designer orders:", error);
+      return res.status(500).json({ error: "Internal server error" });
+    }
+  }
+
+  return res.status(400).json({ error: "Missing fullname or designer" });
 });
 
 router.post('/export-orders', async (req, res) => {

@@ -35,7 +35,7 @@ const OrderProcessForm = () => {
   useEffect(() => {
     const fetchOrder = async () => {
       try {
-        const res = await axios.get(`http://localhost:5000/api/orders/${id}`);
+        const res = await axios.get(`http://192.168.1.11:5000/api/orders/${id}`);
         setFormData(res.data);
       } catch (err) {
         console.error("Failed to fetch order by ID", err);
@@ -122,7 +122,7 @@ const OrderProcessForm = () => {
   useEffect(() => {
     const fetchBrands = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/brands");
+        const res = await axios.get("http://192.168.1.11:5000/api/brands");
         const brandOptions = res.data.map((b) => ({
           value: b.brandName,
           label: b.brandName,
@@ -138,7 +138,7 @@ const OrderProcessForm = () => {
   useEffect(() => {
     const fetchConcernedPersons = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/concerned-persons");
+        const res = await axios.get("http://192.168.1.11:5000/api/concerned-persons");
         const formattedOptions = res.data.map((person) => ({
           value: person.emp_id,   // what we save
           label: person.fullName, // what we show
@@ -171,7 +171,7 @@ const OrderProcessForm = () => {
     if (!selectedBrand) return;
 
     try {
-      const res = await axios.post("http://localhost:5000/api/getBrandDetails", {
+      const res = await axios.post("http://192.168.1.11:5000/api/getBrandDetails", {
         brandName: selectedBrand,
       });
 
@@ -185,7 +185,9 @@ const OrderProcessForm = () => {
         mrp: data.mrp || "",
         clientName: data.clientName || "",
         section: data.section || "",
-        productStatus: "New",
+        productStatus: data.productStatus || "New",
+        // designer: data.designer || "",
+        // attachApprovedArtwork: data.attachApprovedArtwork || "",
       }));
     } catch (error) {
       console.error("Error fetching brand details:", error);
@@ -239,14 +241,14 @@ const OrderProcessForm = () => {
           data.append(key, typeof value === 'object' ? JSON.stringify(value) : value);
         }
       });
-  
+
       if (artworkFile) {
         data.append("artwork", artworkFile);
       }
   
       data.set("stage", currentStep + 1);
   
-      const res = await axios.post("http://localhost:5000/api/saveProgress", data, {
+      const res = await axios.post("http://192.168.1.11:5000/api/saveProgress", data, {
         headers: { "Content-Type": "multipart/form-data" },
       });
   
@@ -257,6 +259,10 @@ const OrderProcessForm = () => {
       if (currentStep < steps.length) {
         setCurrentStep((prev) => prev + 1);
         setSearchParams({ stage: (currentStep + 1).toString() });
+      }
+
+      if (data.stage === 6 && data.productStatus === 'New'){
+        data.productStatus = 'repeat';
       }
     } catch (error) {
       console.error("Error saving progress:", error);
@@ -293,6 +299,7 @@ const OrderProcessForm = () => {
       }
     });
 
+    console.log(artworkFile)
     if (artworkFile) data.append("artwork", artworkFile);
 
     let step = 0;
@@ -317,22 +324,21 @@ const OrderProcessForm = () => {
       navigate(`/printers?stage=4`);
     } else if (stage === 4) {
       step = 5;
+      navigate(`/view-orders/${empId}?stage=${stage+1}`)
     } else if (stage === 5) {
       step = 6;
       navigate(`/view-orders/${empId}?stage=${stage+1}`)
     } else if (stage === 6) {
       step = 7;
+      navigate(`/view-orders/${empId}?stage=${stage+1}`)
     } else if (stage === 7) {
       step = 8;
       navigate(`/view-orders/${empId}?stage=${stage+1}`)
-    } else if (stage === 8) {
-      step = 9;
     }
-
     data.set("stage", step);
     data.set("amount", amount);
 
-    const res = await axios.post("http://localhost:5000/api/saveProgress", data, {
+    const res = await axios.post("http://192.168.1.11:5000/api/saveProgress", data, {
       headers: { "Content-Type": "multipart/form-data" },
     });
 
