@@ -46,15 +46,15 @@ const stageFilter = stageParam?.includes(",")
     const fetchOrders = async () => {
       try {
         if (category !== 'view-all-orders') {
-          const res = await axios.get(`http://192.168.0.27:5000/api/orders/by-concerned/${empId}?page=${page}&limit=${limit}`);
+          const res = await axios.get(`http://192.168.0.37:5000/api/orders/by-concerned/${empId}?page=${page}&limit=${limit}`);
           const { orders: pagedOrders = [], totalPages: total = 0 } = res.data;
           setOrders(Array.isArray(pagedOrders) ? pagedOrders : []);
           setTotalPages(total);
           console.log(total)
         } else {
           const [pagedRes, allRes] = await Promise.all([
-            axios.get(`http://192.168.0.27:5000/api/orders?page=${page}&limit=${limit}`),
-            axios.get("http://192.168.0.27:5000/api/orders")
+            axios.get(`http://192.168.0.37:5000/api/orders?page=${page}&limit=${limit}`),
+            axios.get("http://192.168.0.37:5000/api/orders")
           ]);
           setOrders(Array.isArray(pagedRes.data.orders) ? pagedRes.data.orders : []);
           setTotalPages(pagedRes.data.totalPages || 1);
@@ -69,7 +69,7 @@ const stageFilter = stageParam?.includes(",")
 
     const fetchPrinters = async () => {
       try {
-        const res = await axios.get("http://192.168.0.27:5000/api/printers");
+        const res = await axios.get("http://192.168.0.37:5000/api/printers");
         setPrinters(res.data);
         console.log(res.data)
       } catch (err) {
@@ -79,7 +79,7 @@ const stageFilter = stageParam?.includes(",")
 
     const fetchSections = async () => {
       try {
-        const res = await axios.get("http://192.168.0.27:5000/api/sections");
+        const res = await axios.get("http://192.168.0.37:5000/api/sections");
         setSections(res.data);
         console.log(res.data)
       } catch (err) {
@@ -149,7 +149,7 @@ const stageFilter = stageParam?.includes(",")
     const updatedStage = category === 'printers' ? 5 : 7;
 
     try {
-      const res = await axios.put(`http://192.168.0.27:5000/api/orders/update-stage`, {
+      const res = await axios.put(`http://192.168.0.37:5000/api/orders/update-stage`, {
         orderId: order.id,
         newStage: updatedStage,
       });
@@ -200,7 +200,7 @@ const stageFilter = stageParam?.includes(",")
 
     // Optional: backend sync
     axios
-      .post("http://192.168.0.27:5000/api/orders/edit-status", {
+      .post("http://192.168.0.37:5000/api/orders/edit-status", {
         orderId: id,
         status: productStatus,
       })

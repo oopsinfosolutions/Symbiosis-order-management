@@ -10,7 +10,7 @@ const Stage4 = ({ formData, handleChange }) => {
   console.log(formData)
 
 useEffect(() => {
-  axios.get("http://192.168.0.27:5000/api/printers")
+  axios.get("http://192.168.0.37:5000/api/printers")
     .then((res) => {
       const options = res.data.map((p) => ({ label: p.name, value: p.name }));
       setPrinterOptions(options);
@@ -31,7 +31,7 @@ useEffect(() => {
 
   const handleDownload = async () => {
     try {
-      const fileUrl = `http://192.168.0.27:5000/uploads/${formData.attachApprovedArtwork}`;
+      const fileUrl = `http://192.168.0.37:5000/uploads/${formData.attachApprovedArtwork}`;
       const response = await fetch(fileUrl);
       const blob = await response.blob();
       const blobUrl = window.URL.createObjectURL(blob);
@@ -107,7 +107,7 @@ useEffect(() => {
   }}
   onCreateOption={async (inputValue) => {
     try {
-      await axios.post('http://192.168.0.27:5000/api/printers/add', { name: inputValue });
+      await axios.post('http://192.168.0.37:5000/api/printers/add', { name: inputValue });
       const newOption = { label: inputValue, value: inputValue };
       setPrinterOptions((prev) => [...prev, newOption]);
       handleChange({
@@ -195,7 +195,7 @@ useEffect(() => {
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
           <div className="bg-white p-4 rounded shadow-xl relative max-w-2xl">
             <img
-              src={`http://192.168.0.27:5000/uploads/${formData.attachApprovedArtwork}`}
+              src={`http://192.168.0.37:5000/uploads/${formData.attachApprovedArtwork}`}
               alt="Artwork Preview"
               className="w-full h-auto rounded"
             />
