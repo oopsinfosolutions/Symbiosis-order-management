@@ -19,7 +19,7 @@ const UpdateUsers = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await axios.get("http://192.168.0.37:5000/Listusers");
+        const response = await axios.get("http://192.168.0.55:5000/Listusers");
         setUsers(response.data);
       } catch (error) {
         console.error("Error fetching users:", error);
@@ -51,13 +51,13 @@ const UpdateUsers = () => {
   const handleUpdate = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.put("http://192.168.0.37:5000/updateusers", {
+      const response = await axios.put("http://192.168.0.55:5000/updateusers", {
         ...formData,
         Emp_id: editingEmpId,
       });
       alert(response.data.message || "User updated successfully!");
       if (response.data.success) {
-        const usersResponse = await axios.get("http://192.168.0.37:5000/Listusers");
+        const usersResponse = await axios.get("http://192.168.0.55:5000/Listusers");
         setUsers(usersResponse.data);
         setShowModal(false);
       }

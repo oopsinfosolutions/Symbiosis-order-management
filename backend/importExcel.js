@@ -4,8 +4,8 @@ const Order = require("./models/Order"); // Your Sequelize model
 const sequelize = require("./config/db"); // Sequelize config
 
 const files = [
-  path.join(__dirname, "NEW PP SHEET.xlsx"),
-  path.join(__dirname, "NEW PKG.xlsx")
+  path.join(__dirname, "Third Party PO (4).xlsx"),
+  // path.join(__dirname, "NEW PKG.xlsx")
 ];
 
 async function importExcelData() {
@@ -23,7 +23,7 @@ async function importExcelData() {
     let rowIndex = 1;
 
     for (const row of combinedRows) {
-      if (!row["PRODUCTS NAMES"] || !row["PARTY NAME"]) {
+      if (!row["PRODUCT NAME"] || !row["PARTY NAMES"]) {
         console.warn(`⏭️ Skipped Row ${rowIndex} - Missing brand/client name`);
         rowIndex++;
         continue;
@@ -32,18 +32,18 @@ async function importExcelData() {
       try {
         await Order.create({
           date: row["DATE"] ? new Date(row["DATE"]) : null,
-          brandName: row["PRODUCTS NAMES"],
+          brandName: row["PRODUCT NAME"],
           composition: row["COMPOSITION"],
-          packSize: row["PACKING"],
-          qty: row["QUANTITY"] || 0,
+          packSize: row["PACK SIZE"],
+          qty: row["QTY"] || 0,
           rate: row["RATE"] || 0,
           amount: row["AMOUNTS"] || 0,
           mrp: row["MRP"] || null,
-          clientName: row["PARTY NAME"],
+          clientName: row["PARTY NAMES"],
           section: row["TYPE"],
-          productStatus: row["PM"] || "NEW",
+          productStatus: row["PM"] || "repeat",
           designer: row["Designer"],
-          concernedPerson: row["PERSON NAMES"],
+          concernedPerson: row["PERSON"],
           innerPacking: row["Inner Packing"],
           OuterPacking: row["Outer Packing"],
           foilTube: row["Foil/Tube"],

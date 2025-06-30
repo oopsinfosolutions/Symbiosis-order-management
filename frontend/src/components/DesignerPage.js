@@ -10,7 +10,7 @@ export default function DesignerPage() {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const response = await axios.get(`http://192.168.0.37:5000/api/designer-orders/${designerName}`);
+        const response = await axios.get(`http://192.168.0.55:5000/api/designer-orders/${designerName}`);
         setOrders(response.data);
       } catch (error) {
         console.error("Error fetching designer orders:", error);
