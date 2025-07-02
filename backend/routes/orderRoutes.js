@@ -87,7 +87,7 @@ router.get("/orders", async (req, res) => {
 
     // 👨‍💼 Concerned Person (apply unless empId = amin + category = printers/sections)
     const isAmin = empId === "admin";
-    const showAll = isAmin && (category === "view-all-orders" || category === "printers" || category === "sections");
+    const showAll = isAmin || (category === "view-all-orders" || category === "printers" || category === "sections");
 
     if (!showAll && empId) {
       where.concernedPerson = empId;

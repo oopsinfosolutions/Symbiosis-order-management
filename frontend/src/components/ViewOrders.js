@@ -69,7 +69,7 @@ const ViewOrders = () => {
   useEffect(() => {
     
     axios
-      .get(`http://192.168.0.55:5000/api/orders?page=${page}&limit=${limit}`)
+      .get(`http://192.168.0.55:5000/api/orders`)
       .then((res) => {
         console.log("API response:", res.data);
         
