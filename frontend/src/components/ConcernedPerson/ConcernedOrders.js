@@ -46,15 +46,15 @@ const stageFilter = stageParam?.includes(",")
     const fetchOrders = async () => {
       try {
         if (category !== 'view-all-orders') {
-          const res = await axios.get(`http://192.168.0.55:5000/api/orders/by-concerned/${empId}?page=${page}&limit=${limit}`);
+          const res = await axios.get(`http://192.168.29.222:5000/api/orders/by-concerned/${empId}?page=${page}&limit=${limit}`);
           const { orders: pagedOrders = [], totalPages: total = 0 } = res.data;
           setOrders(Array.isArray(pagedOrders) ? pagedOrders : []);
           setTotalPages(total);
           console.log(total)
         } else {
           const [pagedRes, allRes] = await Promise.all([
-            axios.get(`http://192.168.0.55:5000/api/orders?page=${page}&limit=${limit}`),
-            axios.get("http://192.168.0.55:5000/api/orders")
+            axios.get(`http://192.168.29.222:5000/api/orders?page=${page}&limit=${limit}`),
+            axios.get("http://192.168.29.222:5000/api/orders")
           ]);
           setOrders(Array.isArray(pagedRes.data.orders) ? pagedRes.data.orders : []);
           setTotalPages(pagedRes.data.totalPages || 1);
@@ -69,7 +69,7 @@ const stageFilter = stageParam?.includes(",")
 
     const fetchPrinters = async () => {
       try {
-        const res = await axios.get("http://192.168.0.55:5000/api/printers");
+        const res = await axios.get("http://192.168.29.222:5000/api/printers");
         setPrinters(res.data);
         console.log(res.data)
       } catch (err) {
@@ -79,7 +79,7 @@ const stageFilter = stageParam?.includes(",")
 
     const fetchSections = async () => {
       try {
-        const res = await axios.get("http://192.168.0.55:5000/api/sections");
+        const res = await axios.get("http://192.168.29.222:5000/api/sections");
         setSections(res.data);
         console.log(res.data)
       } catch (err) {
@@ -149,7 +149,7 @@ const stageFilter = stageParam?.includes(",")
     const updatedStage = category === 'printers' ? 5 : 7;
 
     try {
-      const res = await axios.put(`http://192.168.0.55:5000/api/orders/update-stage`, {
+      const res = await axios.put(`http://192.168.29.222:5000/api/orders/update-stage`, {
         orderId: order.id,
         newStage: updatedStage,
       });
@@ -200,13 +200,12 @@ const stageFilter = stageParam?.includes(",")
 
     // Optional: backend sync
     axios
-      .post("http://192.168.0.55:5000/api/orders/edit-status", {
+      .post("http://192.168.29.222:5000/api/orders/edit-status", {
         orderId: id,
         status: productStatus,
       })
       .then((res) => {
         if(order.stage === 1 && order.productStatus === "New"){
-          console.log("isithereeee")
           navigate(`/multiform/${id}?stage=${2}`, { state: { order } });
         } else if (order.stage === 2 || order.stage === 3) {
           navigate(`/multiform/${id}?stage=${3}`, { state: { order } });
@@ -225,45 +224,82 @@ const stageFilter = stageParam?.includes(",")
       });
   };
 
-  const filteredOrders = orders
-    .filter(order =>
-      [order.brandName, order.date, order.qty, order.rate, order.amount, order.productStatus]
-        .some(field =>
-          field?.toString().toLowerCase().includes(searchTerm.toLowerCase())
-        )
-    ).filter(order =>
-      navStatus ? order.productStatus?.toLowerCase() === navStatus.toLowerCase() : true
-    ).filter(order => {
-      if (Array.isArray(stageFilter)) {
-        return stageFilter.includes(order.stage);
-      } else if (!isNaN(stageFilter)) {
-        return order.stage === stageFilter;
+  // const filteredOrders = orders
+  //   .filter(order =>
+  //     [order.brandName, order.date, order.qty, order.rate, order.amount, order.productStatus]
+  //       .some(field =>
+  //         field?.toString().toLowerCase().includes(searchTerm.toLowerCase())
+  //       )
+  //   ).filter(order =>
+  //     navStatus ? order.productStatus?.toLowerCase() === navStatus.toLowerCase() : true
+  //   ).filter(order => {
+  //     if (Array.isArray(stageFilter)) {
+  //       return stageFilter.includes(order.stage);
+  //     } else if (!isNaN(stageFilter)) {
+  //       return order.stage === stageFilter;
+  //     }
+  //     return true;
+  //   })
+  //   .filter(order => {
+  //     console.log(statusFilter)
+  //     const status = getStatus(order.date, order.productStatus, order.stage, order.poDate).label.toLowerCase();
+  //     if (statusFilter === "overdue") return status === "overdue";
+  //     if (statusFilter === "dueToday") return status === "due today";
+  //     return true;
+  //   }).filter(order =>
+  //     category === "printers" && selectedPrinter
+  //       ? (
+  //         order.innerPrinter === selectedPrinter ||
+  //         order.outerPrinter === selectedPrinter ||
+  //         order.foilTubePrinter === selectedPrinter ||
+  //         order.additionalPrinter === selectedPrinter
+  //       )
+  //       : true
+  //   ).filter(order =>
+  //     category === "sections" && selectedSections
+  //       ? order.section === selectedSections
+  //       : true
+  //   );
+
+  const fetchFilteredOrders = async () => {
+  try {
+    const response = await axios.get("http://192.168.29.222:5000/api/orders", {
+      params: {
+        empId,
+        searchTerm,
+        navStatus,
+        stageFilter: Array.isArray(stageFilter) ? stageFilter.join(",") : stageFilter,
+        statusFilter,
+        category,
+        selectedPrinter,
+        selectedSections,
+        page,
+        limit
       }
-      return true;
-    })
-    .filter(order => {
-      console.log(statusFilter)
-      const status = getStatus(order.date, order.productStatus, order.stage, order.poDate).label.toLowerCase();
-      if (statusFilter === "overdue") return status === "overdue";
-      if (statusFilter === "dueToday") return status === "due today";
-      return true;
-    }).filter(order =>
-      category === "printers" && selectedPrinter
-        ? (
-          order.innerPrinter === selectedPrinter ||
-          order.outerPrinter === selectedPrinter ||
-          order.foilTubePrinter === selectedPrinter ||
-          order.additionalPrinter === selectedPrinter
-        )
-        : true
-    ).filter(order =>
-      category === "sections" && selectedSections
-        ? order.section === selectedSections
-        : true
-    );
+    });
+
+    // ✅ Set orders properly from the response
+    setOrders(Array.isArray(response.data.orders) ? response.data.orders : []);
+    setTotalPages(response.data.totalPages || 1);
+  } catch (err) {
+    console.error("❌ Error fetching orders:", err);
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+
+useEffect(() => {
+  const debounceTimer = setTimeout(() => {
+    fetchFilteredOrders();
+  }, 500); // Adjust delay if needed
+
+  return () => clearTimeout(debounceTimer);
+}, [searchTerm, navStatus, stageFilter, statusFilter, category, selectedPrinter, selectedSections, page]);
 
   const exportToExcel = () => {
-    const exportData = filteredOrders.map(order => ({
+    const exportData = orders.map(order => ({ 
       "Order ID": order.id,
       "Date": order.date?.split("T")[0],
       "Brand Name": order.brandName,
@@ -392,7 +428,7 @@ const stageFilter = stageParam?.includes(",")
 
           {loading ? (
             <div className="text-center text-gray-500">Loading orders...</div>
-          ) : filteredOrders.length === 0 ? (
+          ) : orders.length === 0 ? (
             <div className="text-center text-gray-500">No orders found.</div>
           ) : (
             <table className="min-w-full bg-white border orders-table">
@@ -432,7 +468,7 @@ const stageFilter = stageParam?.includes(",")
                 </tr>
               </thead>
               <tbody>
-                {filteredOrders.map((order) => {
+                {orders.map((order) => {
                   const { label, color } = getStatus(order.date, order.productStatus, order.stage, order.poDate);
                   return (
                     <tr key={order._id}>

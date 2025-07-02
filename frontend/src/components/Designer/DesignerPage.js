@@ -29,7 +29,7 @@ export default function DesignerPage() {
         params.fullname = fullname;
       }
 
-      const response = await axios.get(`http://192.168.0.55:5000/api/designer-orders`, { params });
+      const response = await axios.get(`http://192.168.29.222:5000/api/designer-orders`, { params });
       const fetchedOrders = Array.isArray(response.data.orders) ? response.data.orders : [];
       setFilteredOrders(fetchedOrders);
       setTotalPages(Math.ceil(fetchedOrders.length / itemsPerPage));
@@ -68,7 +68,7 @@ export default function DesignerPage() {
 
   const handleOrderAction = (order) => {
     axios
-      .post("http://192.168.0.55:5000/api/orders/edit-status", {
+      .post("http://192.168.29.222:5000/api/orders/edit-status", {
         orderId: order.id,
         status: "New",
       })

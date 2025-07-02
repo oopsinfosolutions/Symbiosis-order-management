@@ -1,9 +1,12 @@
 const express = require("express");
 const router = express.Router();
 const db = require('../config/db'); // Sequelize connection
+const sequelize = db;
 const multer = require("multer");
 const path = require("path");
 const { QueryTypes } = require('sequelize');
+const { Op } = require("sequelize");
+// const getStatus = require("../utils/getStatus"); // If used for dueToday/overdue
 
 const safeValue = (v) => (v !== undefined && v !== '' ? v : null);
 
@@ -32,35 +35,103 @@ router.post("/", async(req, res) => {
 });
 
 // GET all orders
-router.get("/orders", async(req, res) => {
-    try {
-        const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 10;
-        const offset = (page - 1) * limit;
 
-        const orders = await db.query(
-            `SELECT SQL_CALC_FOUND_ROWS * FROM orders ORDER BY id DESC LIMIT :limit OFFSET :offset`, {
-                replacements: { limit, offset },
-                type: QueryTypes.SELECT,
-                raw: true,
-            }
-        );
+router.get("/orders", async (req, res) => {
+  try {
+    const {
+      searchTerm = "",
+      navStatus,
+      stageFilter,
+      statusFilter,
+      category,
+      selectedPrinter,
+      selectedSections,
+      page = 1,
+      limit = 20,
+    } = req.query;
 
-        const totalResult = await db.query("SELECT FOUND_ROWS() AS total", {
-            type: QueryTypes.SELECT,
-        });
-        const total = totalResult[0].total;
+    const where = {};
+    const currentPage = parseInt(page);
+    const pageSize = parseInt(limit);
+    const offset = (currentPage - 1) * pageSize;
 
-        res.json({
-            orders,
-            totalPages: Math.ceil(total / limit),
-            currentPage: page,
-        });
-    } catch (err) {
-        console.error("Failed to fetch paginated orders:", err);
-        res.status(500).json({ error: "Failed to fetch orders" });
+    // 🔍 SearchTerm match on multiple fields
+    if (searchTerm) {
+      const term = `%${searchTerm.toLowerCase()}%`;
+      where[Op.or] = [
+        sequelize.where(sequelize.fn("LOWER", sequelize.col("brandName")), { [Op.like]: term }),
+        sequelize.where(sequelize.fn("LOWER", sequelize.col("productStatus")), { [Op.like]: term }),
+        sequelize.where(sequelize.fn("LOWER", sequelize.col("qty")), { [Op.like]: term }),
+        sequelize.where(sequelize.fn("LOWER", sequelize.col("rate")), { [Op.like]: term }),
+        sequelize.where(sequelize.fn("LOWER", sequelize.col("amount")), { [Op.like]: term }),
+        sequelize.where(sequelize.fn("LOWER", sequelize.col("date")), { [Op.like]: term }),
+      ];
     }
+
+    // 🧭 Product Status (Repeat/New)
+    if (navStatus) {
+      where.productStatus = navStatus;
+    }
+
+    // 📦 Stage
+    if (stageFilter) {
+      const stages = stageFilter
+        .split(",")
+        .map((s) => parseInt(s.trim(), 10))
+        .filter((n) => !isNaN(n));
+      if (stages.length > 0) {
+        where.stage = stages.length === 1 ? stages[0] : { [Op.in]: stages };
+      }
+    }
+
+    // Count before filters like statusFilter or printer filters
+    const totalCount = await Order.count({ where });
+
+    // Fetch base paginated result
+    let orders = await Order.findAll({
+      where,
+      limit: pageSize,
+      offset,
+      order: [['id', 'DESC']]
+    });
+
+    // 🔔 Overdue / Due Today (after fetching)
+    if (statusFilter) {
+      const getStatus = require("../utils/getStatus"); // Make sure this exists
+      orders = orders.filter(order => {
+        const status = getStatus(order.date, order.productStatus, order.stage, order.poDate).label.toLowerCase();
+        if (statusFilter === "dueToday") return status === "due today";
+        if (statusFilter === "overdue") return status === "overdue";
+        return true;
+      });
+    }
+
+    // 🎯 Printer Filter
+    if (category === "printers" && selectedPrinter) {
+      orders = orders.filter(order =>
+        order.innerPrinter === selectedPrinter ||
+        order.outerPrinter === selectedPrinter ||
+        order.foilTubePrinter === selectedPrinter ||
+        order.additionalPrinter === selectedPrinter
+      );
+    }
+
+    // 🗂 Section Filter
+    if (category === "sections" && selectedSections) {
+      orders = orders.filter(order => order.section === selectedSections);
+    }
+
+    res.json({
+      orders,
+      currentPage,
+      totalPages: Math.ceil(totalCount / pageSize)
+    });
+  } catch (error) {
+    console.error("❌ Error fetching filtered orders:", error);
+    res.status(500).json({ error: "Server error" });
+  }
 });
+
 
 // Route: /api/concerned-persons
 router.get("/concerned-persons", async (req, res) => {
@@ -78,7 +149,7 @@ router.get("/concerned-persons", async (req, res) => {
 // Save Progress (Insert or Update) - FIXED VERSION
 router.post('/saveProgress', upload.single("artwork"), async(req, res) => {
     const data = req.body;
-    console.log(data);
+    console.log(data.date);
 
     const artworkFilename = req.file?.filename || null;
     console.log(artworkFilename);

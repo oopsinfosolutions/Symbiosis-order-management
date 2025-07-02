@@ -14,7 +14,7 @@ const DeleteUsers = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await axios.get("http://192.168.0.55:5000/Listusers");
+        const response = await axios.get("http://192.168.29.222:5000/Listusers");
         setUsers(response.data);
       } catch (error) {
         console.error("Error fetching user data:", error);
@@ -28,7 +28,7 @@ const DeleteUsers = () => {
     if (!window.confirm("Are you sure you want to delete this user?")) return;
 
     try {
-      const response = await axios.delete(`http://192.168.0.55:5000/deleteUsers/${Emp_id}`);
+      const response = await axios.delete(`http://192.168.29.222:5000/deleteUsers/${Emp_id}`);
       alert(response.data.message || "User deleted successfully");
 
       setUsers((prevUsers) => prevUsers.filter((user) => user.Emp_id !== Emp_id));
