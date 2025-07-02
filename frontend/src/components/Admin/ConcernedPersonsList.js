@@ -12,7 +12,7 @@ const ConcernedPersonsList = () => {
   useEffect(() => {
     const fetchPersons = async () => {
       try {
-        const res = await axios.get("http://192.168.29.222:5000/api/concerned-persons");
+        const res = await axios.get("http://192.168.1.11:5000/api/concerned-persons");
         setPersons(res.data);
       } catch (error) {
         console.error("Failed to fetch concerned persons:", error);

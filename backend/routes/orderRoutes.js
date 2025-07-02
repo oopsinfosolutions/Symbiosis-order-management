@@ -39,6 +39,7 @@ router.post("/", async(req, res) => {
 router.get("/orders", async (req, res) => {
   try {
     const {
+      empId,
       searchTerm = "",
       navStatus,
       stageFilter,
@@ -55,7 +56,7 @@ router.get("/orders", async (req, res) => {
     const pageSize = parseInt(limit);
     const offset = (currentPage - 1) * pageSize;
 
-    // 🔍 SearchTerm match on multiple fields
+    // 🔍 Search term filter (brandName, status, etc.)
     if (searchTerm) {
       const term = `%${searchTerm.toLowerCase()}%`;
       where[Op.or] = [
@@ -73,7 +74,7 @@ router.get("/orders", async (req, res) => {
       where.productStatus = navStatus;
     }
 
-    // 📦 Stage
+    // 📦 Stage Filter
     if (stageFilter) {
       const stages = stageFilter
         .split(",")
@@ -84,41 +85,49 @@ router.get("/orders", async (req, res) => {
       }
     }
 
-    // Count before filters like statusFilter or printer filters
+    // 👨‍💼 Concerned Person (apply unless empId = amin + category = printers/sections)
+    const isAmin = empId === "admin";
+    const showAll = isAmin && (category === "view-all-orders" || category === "printers" || category === "sections");
+
+    if (!showAll && empId) {
+      where.concernedPerson = empId;
+    }
+
+    // 🖨️ Printer Filter (inside WHERE)
+    if (category === "printers" && selectedPrinter) {
+      where[Op.or] = [
+        { innerPrinter: selectedPrinter },
+        { outerPrinter: selectedPrinter },
+        { foilTubePrinter: selectedPrinter },
+        { additionalPrinter: selectedPrinter }
+      ];
+    }
+
+    // 🗂️ Section Filter (inside WHERE)
+    if (category === "sections" && selectedSections) {
+      where.section = selectedSections;
+    }
+
+    // ✅ Total count with DB filters applied
     const totalCount = await Order.count({ where });
 
-    // Fetch base paginated result
+    // ✅ Fetch paginated orders
     let orders = await Order.findAll({
       where,
       limit: pageSize,
       offset,
-      order: [['id', 'DESC']]
+      order: [['id', 'DESC']],
     });
 
-    // 🔔 Overdue / Due Today (after fetching)
+    // ⏰ Overdue / Due Today filter (after fetching)
     if (statusFilter) {
-      const getStatus = require("../utils/getStatus"); // Make sure this exists
+      const getStatus = require("../utils/getStatus");
       orders = orders.filter(order => {
         const status = getStatus(order.date, order.productStatus, order.stage, order.poDate).label.toLowerCase();
         if (statusFilter === "dueToday") return status === "due today";
         if (statusFilter === "overdue") return status === "overdue";
         return true;
       });
-    }
-
-    // 🎯 Printer Filter
-    if (category === "printers" && selectedPrinter) {
-      orders = orders.filter(order =>
-        order.innerPrinter === selectedPrinter ||
-        order.outerPrinter === selectedPrinter ||
-        order.foilTubePrinter === selectedPrinter ||
-        order.additionalPrinter === selectedPrinter
-      );
-    }
-
-    // 🗂 Section Filter
-    if (category === "sections" && selectedSections) {
-      orders = orders.filter(order => order.section === selectedSections);
     }
 
     res.json({

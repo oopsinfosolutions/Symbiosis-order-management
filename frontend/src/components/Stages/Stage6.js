@@ -1,7 +1,8 @@
 import React from 'react';
 import CreatableSelect from "react-select/creatable";
+import Select from "react-select";
 
-const Stage6 = ({ formData, handleChange, handleBrandChange, handleBrandCreate, brands, amount}) => (
+const Stage6 = ({ formData, handleChange, handleBrandChange, handleBrandCreate, brands, amount, concernedPersons}) => (
   <div className="p-4">
     <h2 className="text-xl font-bold mb-4">Complete List</h2>
 
@@ -151,13 +152,25 @@ const Stage6 = ({ formData, handleChange, handleBrandChange, handleBrandCreate, 
         <tr>
           <td className="border p-2 font-semibold">Concerned Person</td>
           <td className="border p-2">
-            <input
-              type="text"
-              name="concernedPerson"
-              value={formData.concernedPerson}
-              onChange={handleChange}
-              className="w-full border p-1"
-            />
+             <CreatableSelect
+  name="concernedPerson"
+  options={concernedPersons}
+  value={
+    concernedPersons.find(option => option.value === formData.concernedPerson) || null
+  }
+  onChange={(selectedOption) =>
+    handleChange({
+      target: {
+        name: "concernedPerson",
+        value: selectedOption ? selectedOption.value : "",
+      },
+    })
+  }
+  isClearable
+  isSearchable
+  isDisabled={false}
+  placeholder="Select Concerned Person"
+/>
           </td>
         </tr>
       </tbody>

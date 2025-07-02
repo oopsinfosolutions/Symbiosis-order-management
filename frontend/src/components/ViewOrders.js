@@ -14,7 +14,7 @@ const ViewOrders = () => {
   const navigate = useNavigate();
   const [statusFilter, setStatusFilter] = useState("");
 
-  // const userRole = empId;
+  const userType = sessionStorage.getItem('type');
 
   const handleEditOrder = (order) => {
     const { id, productStatus } = order;
@@ -34,7 +34,7 @@ const ViewOrders = () => {
   
     // Optional: backend sync
     axios
-      .post("http://192.168.29.222:5000/api/orders/edit-status", {
+      .post("http://192.168.1.11:5000/api/orders/edit-status", {
         orderId: id,
         status: productStatus,
       })
@@ -69,7 +69,7 @@ const ViewOrders = () => {
   useEffect(() => {
     
     axios
-      .get(`http://192.168.29.222:5000/api/orders?page=${page}&limit=${limit}`)
+      .get(`http://192.168.1.11:5000/api/orders?page=${page}&limit=${limit}`)
       .then((res) => {
         console.log("API response:", res.data);
         
@@ -90,9 +90,9 @@ const ViewOrders = () => {
   return (
     <div className="layout-container">
       <div className="sidebar-container">
-        {/* {userRole === "admin" ? <Nav /> : */}
+        {userType === "admin" ? <Nav /> :
          <SideNav />
-         {/* } */}
+          }
       </div>
       <div className="form-section">
     <div className="orders-container">

@@ -35,7 +35,7 @@ const OrderProcessForm = () => {
   useEffect(() => {
     const fetchOrder = async () => {
       try {
-        const res = await axios.get(`http://192.168.29.222:5000/api/orders/${id}`);
+        const res = await axios.get(`http://192.168.1.11:5000/api/orders/${id}`);
         setFormData(res.data);
       } catch (err) {
         console.error("Failed to fetch order by ID", err);
@@ -56,6 +56,7 @@ const OrderProcessForm = () => {
     brandName: "",
     composition: "",
     packSize: "",
+    concernedPerson: "",
     qty: "",
     rate: "",
     amount: "",
@@ -122,7 +123,7 @@ const OrderProcessForm = () => {
   useEffect(() => {
     const fetchBrands = async () => {
       try {
-        const res = await axios.get("http://192.168.29.222:5000/api/brands");
+        const res = await axios.get("http://192.168.1.11:5000/api/brands");
         const brandOptions = res.data.map((b) => ({
           value: b.brandName,
           label: b.brandName,
@@ -138,7 +139,7 @@ const OrderProcessForm = () => {
   useEffect(() => {
     const fetchConcernedPersons = async () => {
       try {
-        const res = await axios.get("http://192.168.29.222:5000/api/concerned-persons");
+        const res = await axios.get("http://192.168.1.11:5000/api/concerned-persons");
         const formattedOptions = res.data.map((person) => ({
           value: person.emp_id,   // what we save
           label: person.fullName, // what we show
@@ -171,7 +172,7 @@ const OrderProcessForm = () => {
     if (!selectedBrand) return;
 
     try {
-      const res = await axios.post("http://192.168.29.222:5000/api/getBrandDetails", {
+      const res = await axios.post("http://192.168.1.11:5000/api/getBrandDetails", {
         brandName: selectedBrand,
       });
 
@@ -248,7 +249,7 @@ const OrderProcessForm = () => {
   
       data.set("stage", currentStep + 1);
   
-      const res = await axios.post("http://192.168.29.222:5000/api/saveProgress", data, {
+      const res = await axios.post("http://192.168.1.11:5000/api/saveProgress", data, {
         headers: { "Content-Type": "multipart/form-data" },
       });
   
@@ -277,7 +278,6 @@ const OrderProcessForm = () => {
       setSearchParams({ stage: (currentStep - 1).toString() });
     }
   };
-
   const handleSubmit = async () => {
   const requiredFields = [...requiredFieldsByStep[1]];
   if (formData.productStatus === "New") requiredFields.push("designer");
@@ -338,7 +338,7 @@ const OrderProcessForm = () => {
     data.set("stage", step);
     data.set("amount", amount);
 
-    const res = await axios.post("http://192.168.29.222:5000/api/saveProgress", data, {
+    const res = await axios.post("http://192.168.1.11:5000/api/saveProgress", data, {
       headers: { "Content-Type": "multipart/form-data" },
     });
 
@@ -552,8 +552,8 @@ const OrderProcessForm = () => {
     },
     {
       title: "FINISHED PRODUCT DISPATCH STATUS",
-      content: <Stage6 formData={formData} setFormData={setFormData} handleBrandChange={handleBrandChange} 
-      handleBrandCreate={handleBrandCreate}  brands={brands} amount={amount}/>,
+      content: <Stage6 formData={formData} setFormData={setFormData} handleChange={handleChange} handleBrandChange={handleBrandChange} 
+      handleBrandCreate={handleBrandCreate}  brands={brands} amount={amount} concernedPersons={options}/>,
     },
   ];
 

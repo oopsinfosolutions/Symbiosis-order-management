@@ -47,7 +47,7 @@ const Login = () => {
     if (!validForm()) return;
 
     try {
-      const response = await fetch('http://192.168.29.222:5000/Login', {
+      const response = await fetch('http://192.168.1.11:5000/Login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(user),
@@ -74,7 +74,9 @@ const Login = () => {
         navigate('/DesignerPage'); // Fixed: Navigate to DesignerPage (same as signup)
       } else if (type === 'employee') {
         navigate(`/orders/${Emp_id}`); // Fixed: Added missing forward slash
-      } else {
+      } else if(type === null || type === 'admin') {
+        navigate(`/orders`);
+      } else{
         // Fallback for any other user types
         createNotification('error', 'Unknown user type');
       }
