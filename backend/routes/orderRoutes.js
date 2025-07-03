@@ -10,6 +10,11 @@ const { Op } = require("sequelize");
 
 const safeValue = (v) => (v !== undefined && v !== '' ? v : null);
 
+const formatDate = (dateString) => {
+  if (!dateString) return null;
+  return new Date(dateString).toISOString().slice(0, 19).replace('T', ' ');
+};
+
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
       cb(null, "uploads/");
@@ -166,7 +171,7 @@ router.post('/saveProgress', upload.single("artwork"), async(req, res) => {
     const now = new Date();
 
     const replacements = {
-        date: safeValue(data.date),
+        date: formatDate(data.date),
         brandName: safeValue(data.brandName),
         composition: safeValue(data.composition),
         packSize: safeValue(data.packSize),
@@ -186,14 +191,14 @@ router.post('/saveProgress', upload.single("artwork"), async(req, res) => {
         approvedArtwork: safeValue(data.approvedArtwork),
         reasonIfHold: safeValue(data.reasonIfHold),
         poNumber: safeValue(data.poNumber),
-        poDate: safeValue(data.poDate),
+        poDate: formatDate(data.poDate),
         innerOrder: safeValue(data.innerOrder),
         outerOrder: safeValue(data.outerOrder),
         foilTubeOrder: safeValue(data.foilTubeOrder),
         additionalOrder: safeValue(data.additionalOrder),
-        receiptDate: safeValue(data.receiptDate),
+        receiptDate: formatDate(data.receiptDate),
         shortExcess: safeValue(data.shortExcess),
-        dispatchDate: safeValue(data.dispatchDate),
+        dispatchDate: formatDate(data.dispatchDate),
         dispatchQty: safeValue(data.dispatchQty), // Added missing field
         shipper: safeValue(data.shipper),
         stage: safeValue(data.stage),
@@ -206,8 +211,8 @@ router.post('/saveProgress', upload.single("artwork"), async(req, res) => {
         outersize: safeValue(data.outersize),
         foiltubesize: safeValue(data.foiltubesize),
         additionalsize: safeValue(data.additionalsize),
-        createdAt: now,
-        updatedAt: now
+        createdAt: formatDate(now),
+        updatedAt: formatDate(now)
     };
 
     try {
