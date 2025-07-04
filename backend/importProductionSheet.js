@@ -3,7 +3,7 @@ const path = require("path");
 const Order = require("./models/Order");
 const sequelize = require("./config/db");
 
-const file = path.join(__dirname, "PRODUCTION PLANING SHEET.xlsx");
+const file = path.join(__dirname, "new1.xlsx");
 
 async function importProductionSheet() {
   try {
@@ -14,7 +14,7 @@ async function importProductionSheet() {
     let rowIndex = 1;
 
     for (const row of rows) {
-      if (!row["PRODUCTS NAMES"] || !row["PARTY NAME"]) {
+      if (!row["PRODUCTS NAMES"]) {
         console.warn(`⏭️ Skipped row ${rowIndex} (missing product or party)`);
         rowIndex++;
         continue;

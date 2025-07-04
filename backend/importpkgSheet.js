@@ -1,74 +1,82 @@
 const XLSX = require("xlsx");
 const path = require("path");
-const Order = require("./models/Order");
-const sequelize = require("./config/db");
-
-const file = path.join(__dirname, "PKG SHEET NEW.xlsx");
+const Order = require("./models/Order"); // Sequelize model
+const file = path.join(__dirname, "new.xlsx");
 
 async function importPkgSheet() {
-    try {
-        const workbook = XLSX.readFile(file);
-        const sheet = workbook.Sheets[workbook.SheetNames[0]];
-        const rows = XLSX.utils.sheet_to_json(sheet, { defval: null });
+  try {
+    const workbook = XLSX.readFile(file);
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(sheet, { defval: null });
 
-        let rowIndex = 1;
+    console.log("🧾 Headers in Excel:", Object.keys(rows[0]));
+    console.log("🔎 Sample row:", rows[0]);
 
-const requiredFields = ["PO DATE", "PRODUCTS", "PERSON"];
+    let inserted = 0;
+    let skipped = 0;
+    let failed = 0;
+    let rowIndex = 1;
+console.log(`📊 Total rows in sheet: ${rows.length}`);
 
-for (const row of rows) {
+   for (const row of rows) {
   const cleanRow = {};
   for (let key in row) {
-    cleanRow[key.trim()] = row[key];
-  }
-
-  const productName = cleanRow["PRODUCTS"]?.toString().trim();
-  const person = cleanRow["PERSON"]?.toString().trim();
-  const poDate = cleanRow["PO DATE"] ? new Date(cleanRow["PO DATE"]) : null;
-
-  // Skip if required fields are missing
-  if (!productName || !person || !poDate) {
-    console.warn(
-      `⏭️ Skipped Row ${rowIndex} - Missing required fields (productName: ${productName}, person: ${person}, poDate: ${poDate})`
-    );
-    rowIndex++;
-    continue;
+    cleanRow[key.trim()] = typeof row[key] === "string" ? row[key].trim() : row[key];
   }
 
   try {
-    await Order.create({
-      poNumber: cleanRow["PO.NO."],
-      date: poDate,
-      brandName: productName,
-      clientName: person,
-      section: cleanRow["TYPE"],
-      productStatus: cleanRow["N.REPEAT"] || "repeat",
-      packSize: cleanRow["PACK SIZE"],
-      type: cleanRow["TYPE_1"],
-      qty: parseFloat(cleanRow["QTY"]) || 0,
-      rate: parseFloat(cleanRow["RATE"]) || 0,
-      innerPrinter: cleanRow["PRINTERS"],
-      receiptDate: cleanRow["RCVD DATE "] ? new Date(cleanRow["RCVD DATE "]) : null,
-    });
+    const productName = cleanRow["PRODUCTS NAMES"];
+    let person = cleanRow["PEERSON"];
+    if (!person) person = "SANDEEP";
 
-    console.log(`✅ Imported Row ${rowIndex}: ${productName}`);
+    const poDateRaw = cleanRow["PO DATE"];
+    const poDate = poDateRaw ? new Date(poDateRaw) : null;
+
+    if (!productName) {
+      console.warn(`⏭️ Skipped Row ${rowIndex}: Missing required fields`, {
+        productName,
+        person,
+        poDate: poDateRaw,
+      });
+      skipped++;
+    } else {
+      await Order.create({
+        poNumber: cleanRow["PO.NO."],
+        date: poDate,
+        brandName: productName,
+        clientName: person,
+        section: cleanRow["SECTION"],
+        productStatus: cleanRow["NEW/REP"] || "repeat",
+        packSize: cleanRow["PACK SIZE"],
+        type: cleanRow["TYPE"],
+        qty: parseFloat(cleanRow["QTY"]) || 0,
+        rate: parseFloat(cleanRow["RATE"]) || 0,
+        innerPrinter: cleanRow["PRINTER"],
+        receiptDate: cleanRow["RCVD DATE"] ? new Date(cleanRow["RCVD DATE"]) : null,
+      });
+
+      console.log(`✅ Imported Row ${rowIndex}: ${productName}`);
+      inserted++;
+    }
   } catch (err) {
-    console.error(`❌ Row ${rowIndex} error:`, err.errors?.map(e => e.message).join(", "));
+    console.error(`❌ Row ${rowIndex} error:`, err.message);
+    failed++;
   }
 
-  rowIndex++;
+  rowIndex++; // ✅ Always increment!
 }
 
 
-console.log("🎉 All rows processed.");
-
-
-
-        console.log("✅ Finished importing PKG SHEET.");
-        process.exit();
-    } catch (err) {
-        console.error("❌ Fatal error:", err.message);
-        process.exit(1);
-    }
+    // Summary
+    console.log(`🎉 Import Complete`);
+    console.log(`✔️ Inserted: ${inserted}`);
+    console.log(`⏭️ Skipped: ${skipped}`);
+    console.log(`❌ Failed: ${failed}`);
+    process.exit(0);
+  } catch (err) {
+    console.error("🔥 Fatal error:", err.message);
+    process.exit(1);
+  }
 }
 
 importPkgSheet();
