@@ -21,7 +21,7 @@ function Signup() {
         const randomNum = Math.floor(1000 + Math.random() * 9000);
         const Emp_id = `${fullName.replace(/\s+/g, '_')}_${randomNum}`;
 
-        const response = await axios.post('http://192.168.0.55:5000/checkEmpId', { Emp_id });
+        const response = await axios.post('http://192.168.0.60:5000/checkEmpId', { Emp_id });
         if (response.data.available) {
           return Emp_id;
         }
@@ -59,7 +59,7 @@ function Signup() {
       const signupData = { ...formData, Emp_id };
       console.log(signupData);
 
-      const response = await axios.post('http://192.168.0.55:5000/Signup', signupData);
+      const response = await axios.post('http://192.168.0.60:5000/Signup', signupData);
       alert(response.data.message);
     if (response.data.success) {
   sessionStorage.setItem(

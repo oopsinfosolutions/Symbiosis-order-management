@@ -47,7 +47,7 @@ const Login = () => {
     if (!validForm()) return;
 
     try {
-      const response = await fetch('http://192.168.0.55:5000/Login', {
+      const response = await fetch('http://192.168.0.60:5000/Login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(user),
