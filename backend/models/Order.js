@@ -1,3 +1,4 @@
+// backend/models/Order.js
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/db');
 
@@ -88,29 +89,47 @@ const Order = sequelize.define('Order', {
     type: DataTypes.STRING,
     defaultValue: '',
   },
-
-  // Stage 5: Receipt Details
-  innerReceived: {
+  
+  // MISSING SIZE FIELDS - ADD THESE
+  innersize: {
     type: DataTypes.STRING,
     defaultValue: '',
+  },
+  outersize: {
+    type: DataTypes.STRING,
+    defaultValue: '',
+  },
+  foiltubesize: {
+    type: DataTypes.STRING,
+    defaultValue: '',
+  },
+  additionalsize: {
+    type: DataTypes.STRING,
+    defaultValue: '',
+  },
+
+  // Stage 5: Receipt Details - FIXED FIELD NAMES
+  innerReceived: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0,
   },
   outerReceived: {
-    type: DataTypes.STRING,
-    defaultValue: '',
+    type: DataTypes.INTEGER,
+    defaultValue: 0,
   },
   foilTubeReceived: {
-    type: DataTypes.STRING,
-    defaultValue: '',
+    type: DataTypes.INTEGER,
+    defaultValue: 0,
   },
   additionalReceived: {
-    type: DataTypes.STRING,
-    defaultValue: '',
+    type: DataTypes.INTEGER,
+    defaultValue: 0,
   },
-  receiptDate: DataTypes.DATE,
-  shortExcess: {
-    type: DataTypes.ENUM('Short', 'Excess', 'OK'),
-    defaultValue: 'OK',
-  },
+  // receiptDate: DataTypes.DATE,
+  // shortExcess: {
+  //   type: DataTypes.ENUM('Short', 'Excess', 'OK'),
+  //   defaultValue: 'OK',
+  // },
 
   // Stage 6: Finished Product Dispatch
   dispatchDate: DataTypes.DATE,

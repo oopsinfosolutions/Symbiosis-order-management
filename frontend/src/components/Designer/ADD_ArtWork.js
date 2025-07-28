@@ -45,13 +45,13 @@ const ADDArtWork = () => {
     
     try {
       setLoading(true);
-      const res = await axios.get(`http://192.168.0.60:5000/api/orders/${id}`);
+      const res = await axios.get(`http://192.168.1.6:5000/api/orders/${id}`);
       // setFormData(prev => ({ ...prev, ...res.data }));
       setFormData(prev => ({ ...prev, ...res.data, concernedPerson: String(res.data.concernedPerson || '') }));
 
       
       if (res.data.artworkFile) {
-        setArtworkPreview(`http://192.168.0.60:5000/uploads/${res.data.artworkFile}`);
+        setArtworkPreview(`http://192.168.1.6:5000/uploads/${res.data.artworkFile}`);
       }
     } catch (err) {
       console.error("Failed to fetch order by ID", err);
@@ -64,7 +64,7 @@ const ADDArtWork = () => {
   // Fetch brands
   const fetchBrands = useCallback(async () => {
     try {
-      const res = await axios.get("http://192.168.0.60:5000/api/brands");
+      const res = await axios.get("http://192.168.1.6:5000/api/brands");
       const brandOptions = res.data
         .filter(b => b?.brandName)
         .map(b => ({
@@ -81,7 +81,7 @@ const ADDArtWork = () => {
   // Fetch concerned persons
   const fetchConcernedPersons = useCallback(async () => {
     try {
-      const res = await axios.get("http://192.168.0.60:5000/api/concerned-persons");
+      const res = await axios.get("http://192.168.1.6:5000/api/concerned-persons");
       const formattedOptions = res.data.map(person => ({
         value: person.emp_id,
         label: person.fullName,
@@ -98,7 +98,7 @@ const ADDArtWork = () => {
     if (order) {
       setFormData(prev => ({ ...prev, ...order, concernedPerson: String(order.concernedPerson || '') }));
       if (order.artworkFile) {
-        setArtworkPreview(`http://192.168.0.60:5000/uploads/${order.artworkFile}`);
+        setArtworkPreview(`http://192.168.1.6:5000/uploads/${order.artworkFile}`);
       }
     } else if (id) {
       fetchOrder();
@@ -228,7 +228,7 @@ const ADDArtWork = () => {
 
       data.set("stage", "3");
 
-      const res = await axios.post("http://192.168.0.60:5000/api/saveProgress", data, {
+      const res = await axios.post("http://192.168.1.6:5000/api/saveProgress", data, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 

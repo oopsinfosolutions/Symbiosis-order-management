@@ -46,15 +46,15 @@ const stageFilter = stageParam?.includes(",")
     const fetchOrders = async () => {
       try {
         if (category !== 'view-all-orders') {
-          const res = await axios.get(`http://192.168.0.60:5000/api/orders/by-concerned/${empId}?page=${page}&limit=${limit}`);
+          const res = await axios.get(`http://192.168.1.6:5000/api/orders/by-concerned/${empId}?page=${page}&limit=${limit}`);
           const { orders: pagedOrders = [], totalPages: total = 0 } = res.data;
           setOrders(Array.isArray(pagedOrders) ? pagedOrders : []);
           setTotalPages(total);
           console.log(total)
         } else {
           const [pagedRes, allRes] = await Promise.all([
-            axios.get(`http://192.168.0.60:5000/api/orders?page=${page}&limit=${limit}`),
-            axios.get("http://192.168.0.60:5000/api/orders")
+            axios.get(`http://192.168.1.6:5000/api/orders?page=${page}&limit=${limit}`),
+            axios.get("http://192.168.1.6:5000/api/orders")
           ]);
           setOrders(Array.isArray(pagedRes.data.orders) ? pagedRes.data.orders : []);
           setTotalPages(pagedRes.data.totalPages || 1);
@@ -69,7 +69,7 @@ const stageFilter = stageParam?.includes(",")
 
     const fetchPrinters = async () => {
       try {
-        const res = await axios.get("http://192.168.0.60:5000/api/printers");
+        const res = await axios.get("http://192.168.1.6:5000/api/printers");
         setPrinters(res.data);
         console.log(res.data)
       } catch (err) {
@@ -79,7 +79,7 @@ const stageFilter = stageParam?.includes(",")
 
     const fetchSections = async () => {
       try {
-        const res = await axios.get("http://192.168.0.60:5000/api/sections");
+        const res = await axios.get("http://192.168.1.6:5000/api/sections");
         setSections(res.data);
         console.log(res.data)
       } catch (err) {
@@ -149,7 +149,7 @@ const stageFilter = stageParam?.includes(",")
     const updatedStage = category === 'printers' ? 5 : 7;
 
     try {
-      const res = await axios.put(`http://192.168.0.60:5000/api/orders/update-stage`, {
+      const res = await axios.put(`http://192.168.1.6:5000/api/orders/update-stage`, {
         orderId: order.id,
         newStage: updatedStage,
       });
@@ -200,7 +200,7 @@ const stageFilter = stageParam?.includes(",")
 
     // Optional: backend sync
     axios
-      .post("http://192.168.0.60:5000/api/orders/edit-status", {
+      .post("http://192.168.1.6:5000/api/orders/edit-status", {
         orderId: id,
         status: productStatus,
       })
@@ -212,6 +212,8 @@ const stageFilter = stageParam?.includes(",")
         } else if (order.stage === 4) {
           navigate(`/multiform/${id}?stage=${4}`, { state: { order } });
         } else if (order.stage === 5) {
+          navigate(`/multiform/${id}?stage=${5}`, { state: { order } });
+        } else if (order.stage === 6) {
           navigate(`/multiform/${id}?stage=${5}`, { state: { order } });
         } else {
           navigate(`/multiform/${id}?stage=${nextStage}`, { state: { order } });
@@ -263,7 +265,7 @@ const stageFilter = stageParam?.includes(",")
 
   const fetchFilteredOrders = async () => {
   try {
-    const response = await axios.get("http://192.168.0.60:5000/api/orders", {
+    const response = await axios.get("http://192.168.1.6:5000/api/orders", {
       params: {
         empId,
         searchTerm,
@@ -464,7 +466,7 @@ useEffect(() => {
                       </select>
                     </div>
                   </th>
-                  {stageFilter !== 6 && <th className="py-2 px-4 border">Actions</th>}
+                  {stageFilter !== 7 && <th className="py-2 px-4 border">Actions</th>}
                 </tr>
               </thead>
               <tbody>
@@ -499,7 +501,7 @@ useEffect(() => {
                           {label}
                         </span>
                       </td>
-                      {order.stage !== 6 && <td className="py-2 px-4 border">
+                      {order.stage !== 7 && <td className="py-2 px-4 border">
                           <button
                             className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
                             onClick={() => handleEditOrder(order)}

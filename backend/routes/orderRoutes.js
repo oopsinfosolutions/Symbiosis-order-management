@@ -161,12 +161,13 @@ router.get("/concerned-persons", async (req, res) => {
 });
 
 // Save Progress (Insert or Update) - FIXED VERSION
+// backend/routes/orderRoutes.js (saveProgress endpoint fixed)
 router.post('/saveProgress', upload.single("artwork"), async(req, res) => {
     const data = req.body;
-    console.log(data.date);
+    console.log("Received data:", data);
 
     const artworkFilename = req.file?.filename || null;
-    console.log(artworkFilename);
+    console.log("Artwork filename:", artworkFilename);
 
     const now = new Date();
 
@@ -196,13 +197,6 @@ router.post('/saveProgress', upload.single("artwork"), async(req, res) => {
         outerOrder: safeValue(data.outerOrder),
         foilTubeOrder: safeValue(data.foilTubeOrder),
         additionalOrder: safeValue(data.additionalOrder),
-        receiptDate: formatDate(data.receiptDate),
-        shortExcess: safeValue(data.shortExcess),
-        dispatchDate: formatDate(data.dispatchDate),
-        dispatchQty: safeValue(data.dispatchQty), // Added missing field
-        shipper: safeValue(data.shipper),
-        stage: safeValue(data.stage),
-        attachApprovedArtwork: safeValue(artworkFilename),
         innerPrinter: safeValue(data.innerPrinter),
         outerPrinter: safeValue(data.outerPrinter),
         foilTubePrinter: safeValue(data.foilTubePrinter),
@@ -211,6 +205,18 @@ router.post('/saveProgress', upload.single("artwork"), async(req, res) => {
         outersize: safeValue(data.outersize),
         foiltubesize: safeValue(data.foiltubesize),
         additionalsize: safeValue(data.additionalsize),
+        // Fixed: Add received fields
+        innerReceived: safeValue(data.innerReceived),
+        outerReceived: safeValue(data.outerReceived),
+        foilTubeReceived: safeValue(data.foilTubeReceived),
+        additionalReceived: safeValue(data.additionalReceived),
+        // receiptDate: formatDate(data.receiptDate),
+        shortExcess: safeValue(data.shortExcess),
+        dispatchDate: formatDate(data.dispatchDate),
+        dispatchQty: safeValue(data.dispatchQty),
+        shipper: safeValue(data.shipper),
+        stage: safeValue(data.stage),
+        attachApprovedArtwork: artworkFilename || safeValue(data.attachApprovedArtwork),
         createdAt: formatDate(now),
         updatedAt: formatDate(now)
     };
@@ -229,16 +235,17 @@ router.post('/saveProgress', upload.single("artwork"), async(req, res) => {
                     innerPacking=:innerPacking, OuterPacking=:OuterPacking, foilTube=:foilTube, additional=:additional,
                     approvedArtwork=:approvedArtwork, reasonIfHold=:reasonIfHold, poNumber=:poNumber, poDate=:poDate,
                     innerOrder=:innerOrder, outerOrder=:outerOrder, foilTubeOrder=:foilTubeOrder, additionalOrder=:additionalOrder,
-                    receiptDate=:receiptDate, shortExcess=:shortExcess, dispatchDate=:dispatchDate, dispatchQty=:dispatchQty, shipper=:shipper, stage=:stage,
-                    attachApprovedArtwork=:attachApprovedArtwork, innerPrinter=:innerPrinter, outerPrinter=:outerPrinter, 
-                    foilTubePrinter=:foilTubePrinter, additionalPrinter=:additionalPrinter, innersize=:innersize, outersize=:outersize,
-                    foiltubesize=:foiltubesize, additionalsize=:additionalsize, updatedAt=:updatedAt
+                    innerPrinter=:innerPrinter, outerPrinter=:outerPrinter, foilTubePrinter=:foilTubePrinter, additionalPrinter=:additionalPrinter,
+                    innersize=:innersize, outersize=:outersize, foiltubesize=:foiltubesize, additionalsize=:additionalsize,
+                    innerReceived=:innerReceived, outerReceived=:outerReceived, foilTubeReceived=:foilTubeReceived, additionalReceived=:additionalReceived,
+                    receiptDate=:receiptDate, shortExcess=:shortExcess, dispatchDate=:dispatchDate, dispatchQty=:dispatchQty, 
+                    shipper=:shipper, stage=:stage, attachApprovedArtwork=:attachApprovedArtwork, updatedAt=:updatedAt
                 WHERE id=:id`, 
                 { replacements }
             );
             res.json({ message: 'Progress updated', id: data.id });
         } else {
-            // Insert new record - FIXED: Added missing columns and values
+            // Insert new record
             const [result] = await db.query(
                 `INSERT INTO orders (
                     date, brandName, composition, packSize, qty, rate, amount, mrp,
@@ -246,20 +253,22 @@ router.post('/saveProgress', upload.single("artwork"), async(req, res) => {
                     innerPacking, OuterPacking, foilTube, additional,
                     approvedArtwork, reasonIfHold, poNumber, poDate,
                     innerOrder, outerOrder, foilTubeOrder, additionalOrder,
+                    innerPrinter, outerPrinter, foilTubePrinter, additionalPrinter,
+                    innersize, outersize, foiltubesize, additionalsize,
+                    innerReceived, outerReceived, foilTubeReceived, additionalReceived,
                     receiptDate, shortExcess, dispatchDate, dispatchQty, shipper, stage, 
-                    attachApprovedArtwork, innerPrinter, outerPrinter, 
-                    foilTubePrinter, additionalPrinter, innersize, outersize,
-                    foiltubesize, additionalsize, createdAt, updatedAt
+                    attachApprovedArtwork, createdAt, updatedAt
                 ) VALUES (
                     :date, :brandName, :composition, :packSize, :qty, :rate, :amount, :mrp,
                     :clientName, :section, :productStatus, :designer, :concernedPerson,
                     :innerPacking, :OuterPacking, :foilTube, :additional,
                     :approvedArtwork, :reasonIfHold, :poNumber, :poDate,
                     :innerOrder, :outerOrder, :foilTubeOrder, :additionalOrder,
+                    :innerPrinter, :outerPrinter, :foilTubePrinter, :additionalPrinter,
+                    :innersize, :outersize, :foiltubesize, :additionalsize,
+                    :innerReceived, :outerReceived, :foilTubeReceived, :additionalReceived,
                     :receiptDate, :shortExcess, :dispatchDate, :dispatchQty, :shipper, :stage, 
-                    :attachApprovedArtwork, :innerPrinter, :outerPrinter, 
-                    :foilTubePrinter, :additionalPrinter, :innersize, :outersize,
-                    :foiltubesize, :additionalsize, :createdAt, :updatedAt
+                    :attachApprovedArtwork, :createdAt, :updatedAt
                 )`, 
                 { replacements }
             );

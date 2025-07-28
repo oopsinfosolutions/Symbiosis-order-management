@@ -17,7 +17,7 @@ const Stage5 = ({ formData, handleChange }) => {
       <input 
         type="number"
         name={qtyKey}
-        value={formData[qtyKey] || ''}
+        value={formData[qtyKey] || 0}
         onChange={handleChange}
         className="w-full px-2 py-1 border rounded"
       />

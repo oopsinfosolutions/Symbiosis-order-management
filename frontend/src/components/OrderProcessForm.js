@@ -35,7 +35,7 @@ const OrderProcessForm = () => {
   useEffect(() => {
     const fetchOrder = async () => {
       try {
-        const res = await axios.get(`http://192.168.0.60:5000/api/orders/${id}`);
+        const res = await axios.get(`http://192.168.1.6:5000/api/orders/${id}`);
         setFormData(res.data);
       } catch (err) {
         console.error("Failed to fetch order by ID", err);
@@ -74,11 +74,10 @@ const OrderProcessForm = () => {
     reasonIfHold: "",
     poNumber: "",
     poDate: "",
-    innerOrder: "",
-    outerOrder: "",
-    foilTubeOrder: "",
-    additionalOrder: "",
-    receiptDate: "",
+    innerOrder: 0,
+    outerOrder: 0,
+    foilTubeOrder: 0,
+    additionalOrder: 0,
     shortExcess: "",
     dispatchDate: "",
     dispatchQty: "",
@@ -87,9 +86,15 @@ const OrderProcessForm = () => {
     outerPrinter: "",
     foilTubePrinter: "",
     additionalPrinter: "",
-    innersize: "",
-    outersize: "",
-    stage: ""
+    innersize: 0,
+    outersize: 0,
+    stage: "",
+    foiltubesize: 0,
+    additionalsize: 0,
+    innerReceived: 0,
+    outerReceived: 0,
+    foilTubeReceived: 0,
+    additionalReceived: 0
   });
 
   const handleFileChange = (e) => {
@@ -123,7 +128,7 @@ const OrderProcessForm = () => {
   useEffect(() => {
     const fetchBrands = async () => {
       try {
-        const res = await axios.get("http://192.168.0.60:5000/api/brands");
+        const res = await axios.get("http://192.168.1.6:5000/api/brands");
         const brandOptions = res.data.map((b) => ({
           value: b.brandName,
           label: b.brandName,
@@ -139,7 +144,7 @@ const OrderProcessForm = () => {
   useEffect(() => {
     const fetchConcernedPersons = async () => {
       try {
-        const res = await axios.get("http://192.168.0.60:5000/api/concerned-persons");
+        const res = await axios.get("http://192.168.1.6:5000/api/concerned-persons");
         const formattedOptions = res.data.map((person) => ({
           value: person.emp_id,   // what we save
           label: person.fullName, // what we show
@@ -172,7 +177,7 @@ const OrderProcessForm = () => {
     if (!selectedBrand) return;
 
     try {
-      const res = await axios.post("http://192.168.0.60:5000/api/getBrandDetails", {
+      const res = await axios.post("http://192.168.1.6:5000/api/getBrandDetails", {
         brandName: selectedBrand,
       });
 
@@ -211,18 +216,72 @@ const OrderProcessForm = () => {
       productStatus: "New",
     }));
   };
+  
+  
 
-  const requiredFieldsByStep = {
-    1: ["date", "brandName", "composition", "packSize", "qty", "rate", "mrp", "clientName", "section", "productStatus", "concernedPerson"],
-    2: ["innerPacking", "OuterPacking", "foilTube", "additional"],
-    3: ["approvedArtwork"],
-    4: ["poNumber", "poDate", "innerOrder", "outerOrder", "foilTubeOrder", "additionalOrder"],
-    5: ["receiptDate", "shortExcess"],
-    6: ["dispatchDate", "dispatchQty", "shipper"]
-  };
+  function getRequiredFields(step, formData) {
+    console.log("step:", step)
+  // const baseFields = {
+  //   0: ["date", "brandName", "composition", "packSize", "qty", "rate", "mrp", "clientName", "section", "productStatus", "concernedPerson"],
+  //   1: [],
+  //   2: ["attachApprovedArtwork"],
+  //   3: ["poNumber", "poDate"],
+  //   4: [],
+  //   5: ["dispatchDate", "dispatchQty", "shipper"]
+  // };
+
+  let requiredFields =[];
+  if(formData.stage === 0 || formData.stage === ""){
+    requiredFields.push("date", "brandName", "composition", "packSize", "qty", "rate", "mrp", "clientName", "section", "productStatus", "concernedPerson")
+  }
+
+  if(formData.stage === 1 && formData.productStatus === "New"){
+    requiredFields.push("attachApprovedArtwork")
+  }
+console.log("step:", step)
+  // Stage 2: Conditional fields for packing types
+  if (formData.stage === 2 || formData.stage === 3) {
+    console.log("printers")
+    requiredFields.push("poNumber", "poDate")
+    if (formData.innerPacking && formData.innerOrder !== 0) {
+      requiredFields.push("innerPrinter", "innerOrder", "innersize");
+    }
+    if (formData.OuterPacking && formData.OuterPacking !== 0) {
+      requiredFields.push("outerPrinter", "outerOrder", "outersize");
+    }
+    if (formData.foilTubeOrder && formData.foilTubeOrder !== 0) {
+      requiredFields.push("foilTubePrinter", "foilTubeOrder", "foilTubesize");
+    }
+    if (formData.additionalOrder && formData.additionalOrder!==0) {
+      requiredFields.push("additionalPrinter", "additionalOrder", "additionalsize");
+    }
+  }
+
+  // Stage 4: Require all printer/order-related fields if any related order field is filled
+  if (formData.stage === 4) {
+    if (formData.innerOrder) {
+      requiredFields.push("innerPrinter", "innerReceived");
+    }
+    if (formData.outerOrder) {
+      requiredFields.push("outerPrinter", "outerReceived");
+    }
+    if (formData.foilTubeOrder) {
+      requiredFields.push("foilTubePrinter", "foilTubeReceived");
+    }
+    if (formData.additionalOrder) {
+      requiredFields.push("additionalPrinter", "additionalReceived"); 
+    }
+  }
+  if(formData.stage === 5){
+    requiredFields.push("dispatchDate", "dispatchQty", "shipper");
+  }
+
+  return requiredFields;
+}
+
 
   const nextStep = async () => {
-    const requiredFields = [...(requiredFieldsByStep[currentStep] || [])];
+const requiredFields = getRequiredFields(currentStep, formData);
     if (formData.productStatus === "New" && currentStep === 1) {
       requiredFields.push("designer");
     }
@@ -249,7 +308,7 @@ const OrderProcessForm = () => {
   
       data.set("stage", currentStep + 1);
   
-      const res = await axios.post("http://192.168.0.60:5000/api/saveProgress", data, {
+      const res = await axios.post("http://192.168.1.6:5000/api/saveProgress", data, {
         headers: { "Content-Type": "multipart/form-data" },
       });
   
@@ -278,8 +337,39 @@ const OrderProcessForm = () => {
       setSearchParams({ stage: (currentStep - 1).toString() });
     }
   };
+  const handleSave = async () => {
+  try {
+    const data = new FormData();
+    formData.amount = amount;
+
+    Object.entries(formData).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        data.append(key, typeof value === 'object' ? JSON.stringify(value) : value);
+      }
+    });
+
+    if (artworkFile) {
+      data.append("artwork", artworkFile);
+    }
+
+    const res = await axios.post("http://192.168.1.6:5000/api/saveProgress", data, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+
+    if (res.data.id && !formData.id) {
+      setFormData((prev) => ({ ...prev, id: res.data.id }));
+    }
+
+    alert("Progress saved successfully.");
+  } catch (error) {
+    console.error("Error saving progress:", error);
+    alert("Failed to save progress.");
+  }
+};
+
+
   const handleSubmit = async () => {
-  const requiredFields = [...requiredFieldsByStep[1]];
+const requiredFields = getRequiredFields(formData.stage, formData);
   if (formData.productStatus === "New") requiredFields.push("designer");
   const stage = Number(formData.stage) || 0;
 
@@ -338,7 +428,7 @@ const OrderProcessForm = () => {
     data.set("stage", step);
     data.set("amount", amount);
 
-    const res = await axios.post("http://192.168.0.60:5000/api/saveProgress", data, {
+    const res = await axios.post("http://192.168.1.6:5000/api/saveProgress", data, {
       headers: { "Content-Type": "multipart/form-data" },
     });
 
@@ -586,12 +676,27 @@ const OrderProcessForm = () => {
             {steps[currentStep - 1]?.content}
           </div>
           <div className="form-navigation">
-            {/* <button onClick={prevStep} disabled={currentStep === 1}>
-            Previous
-          </button> */}
-            {formData.stage === 8 || <button onClick={handleSubmit}>Submit</button>}
-
-          </div>
+  {/* Dropdown with Save and Submit options */}
+  {formData.stage !== 6 && (
+    <div className="action-dropdown">
+      <select 
+        onChange={(e) => {
+          if (e.target.value === 'save') {
+            handleSave();
+          } else if (e.target.value === 'submit') {
+            handleSubmit();
+          }
+          e.target.value = 'save'; // Reset dropdown after action
+        }}
+        className="action-select"
+        defaultValue="save"
+      >
+        <option value="save">Save Progress</option>
+        <option value="submit">Submit & Next</option>
+      </select>
+    </div>
+  )}
+</div>
         </div>
       </div>
       </div>
