@@ -7,7 +7,7 @@ echo ========================================
 echo.
 
 :: Git pull from root directory
-echo [1/3] Pulling latest changes from Git...
+echo [1/2] Pulling latest changes from Git...
 git pull
 if %errorlevel% neq 0 (
     echo Error: Git pull failed!
@@ -17,15 +17,8 @@ if %errorlevel% neq 0 (
 echo Git pull completed successfully!
 echo.
 
-:: Start backend
-echo [2/3] Starting backend server...
-start "Backend Server" cmd /k "cd backend && echo Starting backend... && node server.js"
-
-:: Wait a moment for backend to start
-timeout /t 3 /nobreak >nul
-
 :: Start frontend  
-echo [3/3] Starting frontend...
+echo [2/2] Starting frontend...
 start "Frontend Server" cmd /k "cd frontend && echo Starting frontend... && npm start"
 
 echo.
