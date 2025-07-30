@@ -58,7 +58,7 @@ const AdminLogin = () => {
     const isValid = validForm();
     if (isValid) {
       try {
-        const response = await fetch('http://192.168.0.91:5000/AdminLogin', {
+        const response = await fetch('http://192.168.1.6:5000/AdminLogin', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(admin),

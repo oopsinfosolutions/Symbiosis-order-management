@@ -238,7 +238,7 @@ router.post('/saveProgress', upload.single("artwork"), async(req, res) => {
                     innerPrinter=:innerPrinter, outerPrinter=:outerPrinter, foilTubePrinter=:foilTubePrinter, additionalPrinter=:additionalPrinter,
                     innersize=:innersize, outersize=:outersize, foiltubesize=:foiltubesize, additionalsize=:additionalsize,
                     innerReceived=:innerReceived, outerReceived=:outerReceived, foilTubeReceived=:foilTubeReceived, additionalReceived=:additionalReceived,
-                    receiptDate=:receiptDate, shortExcess=:shortExcess, dispatchDate=:dispatchDate, dispatchQty=:dispatchQty, 
+                    shortExcess=:shortExcess, dispatchDate=:dispatchDate, dispatchQty=:dispatchQty, 
                     shipper=:shipper, stage=:stage, attachApprovedArtwork=:attachApprovedArtwork, updatedAt=:updatedAt
                 WHERE id=:id`, 
                 { replacements }
@@ -256,7 +256,7 @@ router.post('/saveProgress', upload.single("artwork"), async(req, res) => {
                     innerPrinter, outerPrinter, foilTubePrinter, additionalPrinter,
                     innersize, outersize, foiltubesize, additionalsize,
                     innerReceived, outerReceived, foilTubeReceived, additionalReceived,
-                    receiptDate, shortExcess, dispatchDate, dispatchQty, shipper, stage, 
+                    shortExcess, dispatchDate, dispatchQty, shipper, stage, 
                     attachApprovedArtwork, createdAt, updatedAt
                 ) VALUES (
                     :date, :brandName, :composition, :packSize, :qty, :rate, :amount, :mrp,
@@ -267,7 +267,7 @@ router.post('/saveProgress', upload.single("artwork"), async(req, res) => {
                     :innerPrinter, :outerPrinter, :foilTubePrinter, :additionalPrinter,
                     :innersize, :outersize, :foiltubesize, :additionalsize,
                     :innerReceived, :outerReceived, :foilTubeReceived, :additionalReceived,
-                    :receiptDate, :shortExcess, :dispatchDate, :dispatchQty, :shipper, :stage, 
+                    :shortExcess, :dispatchDate, :dispatchQty, :shipper, :stage, 
                     :attachApprovedArtwork, :createdAt, :updatedAt
                 )`, 
                 { replacements }

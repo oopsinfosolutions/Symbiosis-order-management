@@ -22,7 +22,7 @@ function Addusers() {
         const randomNum = Math.floor(1000 + Math.random() * 9000);
         const Emp_id = `${fullName.replace(/\s+/g, "_")}_${randomNum}`;
 
-        const response = await axios.post("http://192.168.0.91:5000/checkEmpId", { Emp_id });
+        const response = await axios.post("http://192.168.1.6:5000/checkEmpId", { Emp_id });
         if (response.data.available) {
           return Emp_id;
         }
@@ -54,7 +54,7 @@ function Addusers() {
       const Emp_id = await generateEmpId(formData.fullName);
       const userData = { ...formData, Emp_id };
 
-      const response = await axios.post("http://192.168.0.91:5000/Signup", userData);
+      const response = await axios.post("http://192.168.1.6:5000/Signup", userData);
       alert(response.data.message);
       if (response.data.success) {
         navigate("/Listusers");

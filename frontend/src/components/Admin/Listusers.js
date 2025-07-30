@@ -14,7 +14,7 @@ const ListUsers = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await axios.get("http://192.168.0.91:5000/Listusers"); // Backend route for listing users
+        const response = await axios.get("http://192.168.1.6:5000/Listusers"); // Backend route for listing users
         setUsers(response.data);
       } catch (error) {
         console.error("Error fetching user data:", error);

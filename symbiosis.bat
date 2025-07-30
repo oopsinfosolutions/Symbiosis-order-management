@@ -1,6 +1,38 @@
 @echo off
-REM ─────────── Change this to your project folder ───────────
-cd /d "D:\projects OOPS\Symbiosis Management system\frontend"
-npm start
-REM ─────────── Keeps window open on exit ───────────
-pause
+title Start Symbiosis Management System
+
+echo ========================================
+echo    Symbiosis Management System
+echo ========================================
+echo.
+
+:: Git pull from root directory
+echo [1/3] Pulling latest changes from Git...
+git pull
+if %errorlevel% neq 0 (
+    echo Error: Git pull failed!
+    pause
+    exit /b 1
+)
+echo Git pull completed successfully!
+echo.
+
+:: Start backend
+echo [2/3] Starting backend server...
+start "Backend Server" cmd /k "cd backend && echo Starting backend... && node server.js"
+
+:: Wait a moment for backend to start
+timeout /t 3 /nobreak >nul
+
+:: Start frontend  
+echo [3/3] Starting frontend...
+start "Frontend Server" cmd /k "cd frontend && echo Starting frontend... && npm start"
+
+echo.
+echo Both servers are starting...
+echo Backend: http://localhost:5000
+echo Frontend: http://localhost:3000
+echo.
+echo Press any key to exit this window...
+pause >nul
+exit

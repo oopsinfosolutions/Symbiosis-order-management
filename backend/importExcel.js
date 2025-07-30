@@ -57,7 +57,7 @@ async function importExcelData() {
           outerOrder: row["Outer Order"] || 0,
           foilTubeOrder: row["Foil/Tube Order"] || 0,
           additionalOrder: row["Additional Order"] || 0,
-          receiptDate: row["Receipt Date"] ? new Date(row["Receipt Date"]) : null,
+          // receiptDate: row["Receipt Date"] ? new Date(row["Receipt Date"]) : null,
           shortExcess: row["Short/Excess"] || "OK",
           dispatchDate: row["Dispatch Date"] ? new Date(row["Dispatch Date"]) : null,
           dispatchQty: row["Qty Dispatch"] || 0,

@@ -7,7 +7,7 @@ const fs = require("fs");
 
 let backendProcess;
 const isDev = !app.isPackaged;
-const lanServerUrl = "http://192.168.0.91:5000"; // ✅ Replace with your LAN IP
+const lanServerUrl = "http://192.168.1.6:5000"; // ✅ Replace with your LAN IP
 
 function createWindow() {
   console.log("Creating window...");

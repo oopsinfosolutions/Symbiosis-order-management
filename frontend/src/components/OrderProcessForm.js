@@ -249,10 +249,10 @@ console.log("step:", step)
     if (formData.OuterPacking && formData.OuterPacking !== 0) {
       requiredFields.push("outerPrinter", "outerOrder", "outersize");
     }
-    if (formData.foilTubeOrder && formData.foilTubeOrder !== 0) {
+    if (formData.foilTube && formData.foilTubeOrder !== 0) {
       requiredFields.push("foilTubePrinter", "foilTubeOrder", "foilTubesize");
     }
-    if (formData.additionalOrder && formData.additionalOrder!==0) {
+    if (formData.additional && formData.additionalOrder!==0) {
       requiredFields.push("additionalPrinter", "additionalOrder", "additionalsize");
     }
   }
@@ -680,17 +680,21 @@ const requiredFields = getRequiredFields(formData.stage, formData);
   {formData.stage !== 6 && (
     <div className="action-dropdown">
       <select 
+        value="" // Always show empty/placeholder state
         onChange={(e) => {
-          if (e.target.value === 'save') {
+          const selected = e.target.value;
+          
+          if (selected === 'save') {
             handleSave();
-          } else if (e.target.value === 'submit') {
+          } else if (selected === 'submit') {
             handleSubmit();
           }
-          e.target.value = 'save'; // Reset dropdown after action
+          
+          // The value is already "" so dropdown automatically resets
         }}
         className="action-select"
-        defaultValue="save"
       >
+        <option value="" disabled>Choose Action</option>
         <option value="save">Save Progress</option>
         <option value="submit">Submit & Next</option>
       </select>
