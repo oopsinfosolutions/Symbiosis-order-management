@@ -35,7 +35,7 @@ const OrderProcessForm = () => {
   useEffect(() => {
     const fetchOrder = async () => {
       try {
-        const res = await axios.get(`http://192.168.0.91:5000/api/orders/${id}`);
+        const res = await axios.get(`http://192.168.0.111:5000/api/orders/${id}`);
         setFormData(res.data);
       } catch (err) {
         console.error("Failed to fetch order by ID", err);
@@ -128,7 +128,7 @@ const OrderProcessForm = () => {
   useEffect(() => {
     const fetchBrands = async () => {
       try {
-        const res = await axios.get("http://192.168.0.91:5000/api/brands");
+        const res = await axios.get("http://192.168.0.111:5000/api/brands");
         const brandOptions = res.data.map((b) => ({
           value: b.brandName,
           label: b.brandName,
@@ -144,7 +144,7 @@ const OrderProcessForm = () => {
   useEffect(() => {
     const fetchConcernedPersons = async () => {
       try {
-        const res = await axios.get("http://192.168.0.91:5000/api/concerned-persons");
+        const res = await axios.get("http://192.168.0.111:5000/api/concerned-persons");
         const formattedOptions = res.data.map((person) => ({
           value: person.emp_id,   // what we save
           label: person.fullName, // what we show
@@ -177,7 +177,7 @@ const OrderProcessForm = () => {
     if (!selectedBrand) return;
 
     try {
-      const res = await axios.post("http://192.168.0.91:5000/api/getBrandDetails", {
+      const res = await axios.post("http://192.168.0.111:5000/api/getBrandDetails", {
         brandName: selectedBrand,
       });
 
@@ -308,7 +308,7 @@ const requiredFields = getRequiredFields(currentStep, formData);
   
       data.set("stage", currentStep + 1);
   
-      const res = await axios.post("http://192.168.0.91:5000/api/saveProgress", data, {
+      const res = await axios.post("http://192.168.0.111:5000/api/saveProgress", data, {
         headers: { "Content-Type": "multipart/form-data" },
       });
   
@@ -352,7 +352,7 @@ const requiredFields = getRequiredFields(currentStep, formData);
       data.append("artwork", artworkFile);
     }
 
-    const res = await axios.post("http://192.168.0.91:5000/api/saveProgress", data, {
+    const res = await axios.post("http://192.168.0.111:5000/api/saveProgress", data, {
       headers: { "Content-Type": "multipart/form-data" },
     });
 
@@ -428,7 +428,7 @@ const requiredFields = getRequiredFields(formData.stage, formData);
     data.set("stage", step);
     data.set("amount", amount);
 
-    const res = await axios.post("http://192.168.0.91:5000/api/saveProgress", data, {
+    const res = await axios.post("http://192.168.0.111:5000/api/saveProgress", data, {
       headers: { "Content-Type": "multipart/form-data" },
     });
 
