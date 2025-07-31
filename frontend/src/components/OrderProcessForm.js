@@ -242,15 +242,17 @@ console.log("step:", step)
   // Stage 2: Conditional fields for packing types
   if (formData.stage === 2 || formData.stage === 3) {
     console.log("printers")
-    requiredFields.push("poNumber", "poDate")
+    if (formData.productStatus === "New"){
+      requiredFields.push("poNumber", "poDate")
+    }
     if (formData.innerPacking && formData.innerOrder !== 0) {
       requiredFields.push("innerPrinter", "innerOrder", "innersize");
     }
-    if (formData.OuterPacking && formData.OuterPacking !== 0) {
+    if (formData.OuterPacking && formData.outerOrder !== 0) {
       requiredFields.push("outerPrinter", "outerOrder", "outersize");
     }
     if (formData.foilTube && formData.foilTubeOrder !== 0) {
-      requiredFields.push("foilTubePrinter", "foilTubeOrder", "foilTubesize");
+      requiredFields.push("foilTubePrinter", "foilTubeOrder", "foiltubesize");
     }
     if (formData.additional && formData.additionalOrder!==0) {
       requiredFields.push("additionalPrinter", "additionalOrder", "additionalsize");
