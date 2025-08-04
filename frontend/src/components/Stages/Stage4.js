@@ -69,7 +69,7 @@ useEffect(() => {
                 className="w-full border rounded px-2 py-1"
               />
             </td>
-            <td className="border p-2">
+            <td className="border p-2"> 
               <input
                 type="number"
                 name={`${quantityField}`}

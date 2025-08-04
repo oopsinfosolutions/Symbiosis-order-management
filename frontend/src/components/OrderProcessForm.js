@@ -240,38 +240,38 @@ const OrderProcessForm = () => {
   }
 console.log("step:", step)
   // Stage 2: Conditional fields for packing types
-  if (formData.stage === 2 || formData.stage === 3) {
-    console.log("printers")
-    if (formData.productStatus === "New"){
-      requiredFields.push("poNumber", "poDate")
-    }
-    if (formData.innerPacking && formData.innerOrder !== 0) {
-      requiredFields.push("innerPrinter", "innerOrder", "innersize");
-    }
-    if (formData.OuterPacking && formData.outerOrder !== 0) {
-      requiredFields.push("outerPrinter", "outerOrder", "outersize");
-    }
-    if (formData.foilTube && formData.foilTubeOrder !== 0) {
-      requiredFields.push("foilTubePrinter", "foilTubeOrder", "foiltubesize");
-    }
-    if (formData.additional && formData.additionalOrder!==0) {
-      requiredFields.push("additionalPrinter", "additionalOrder", "additionalsize");
-    }
-  }
+  // if (formData.stage === 2 || formData.stage === 3) {
+  //   console.log("printers")
+  //   if (formData.productStatus === "New"){
+  //     requiredFields.push("poNumber", "poDate")
+  //   }
+  //   if (formData.innerPacking && formData.innerOrder !== 0) {
+  //     requiredFields.push("innerPrinter", "innerOrder", "innersize");
+  //   }
+  //   if (formData.OuterPacking && formData.outerOrder !== 0) {
+  //     requiredFields.push("outerPrinter", "outerOrder", "outersize");
+  //   }
+  //   if (formData.foilTube && formData.foilTubeOrder !== 0) {
+  //     requiredFields.push("foilTubePrinter", "foilTubeOrder", "foiltubesize");
+  //   }
+  //   if (formData.additional && formData.additionalOrder!==0) {
+  //     requiredFields.push("additionalPrinter", "additionalOrder", "additionalsize");
+  //   }
+  // }
 
   // Stage 4: Require all printer/order-related fields if any related order field is filled
   if (formData.stage === 4) {
     if (formData.innerOrder) {
-      requiredFields.push("innerPrinter", "innerReceived");
+      requiredFields.push("innerReceived");
     }
     if (formData.outerOrder) {
-      requiredFields.push("outerPrinter", "outerReceived");
+      requiredFields.push("outerReceived");
     }
     if (formData.foilTubeOrder) {
-      requiredFields.push("foilTubePrinter", "foilTubeReceived");
+      requiredFields.push("foilTubeReceived");
     }
     if (formData.additionalOrder) {
-      requiredFields.push("additionalPrinter", "additionalReceived"); 
+      requiredFields.push("additionalReceived"); 
     }
   }
   if(formData.stage === 5){

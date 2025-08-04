@@ -50,7 +50,6 @@ const stageFilter = stageParam?.includes(",")
           const { orders: pagedOrders = [], totalPages: total = 0 } = res.data;
           setOrders(Array.isArray(pagedOrders) ? pagedOrders : []);
           setTotalPages(total);
-          console.log(total)
         } else {
           const [pagedRes, allRes] = await Promise.all([
             axios.get(`http://192.168.0.111:5000/api/orders?page=${page}&limit=${limit}`),
@@ -94,9 +93,6 @@ const stageFilter = stageParam?.includes(",")
     } else if (category === "sections") {
       fetchSections();
     }
-
-
-
   }, [empId, category, page]);
 
 
@@ -143,7 +139,6 @@ const stageFilter = stageParam?.includes(",")
     const nextStage = currentStage + 1;
     navigate(`/multiform/${id}?stage=${nextStage}`);
   };
-  console.log(orders)
 
   const handleComplete = async (order) => {
     const updatedStage = category === 'printers' ? 5 : 7;
@@ -196,8 +191,6 @@ const stageFilter = stageParam?.includes(",")
     } else {
       nextStage = order.stage + 1; // fallback
     }
-
-
     // Optional: backend sync
     axios
       .post("http://192.168.0.111:5000/api/orders/edit-status", {
