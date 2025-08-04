@@ -52,14 +52,15 @@ router.get("/orders", async (req, res) => {
       category,
       selectedPrinter,
       selectedSections,
-      page = 1,
-      limit = 20,
+      page,
+      limit,
     } = req.query;
 
     const where = {};
-    const currentPage = parseInt(page);
-    const pageSize = parseInt(limit);
-    const offset = (currentPage - 1) * pageSize;
+    const currentPage = page ? parseInt(page) : null;
+    const pageSize = limit ? parseInt(limit) : null;
+    const offset = currentPage && pageSize ? (currentPage - 1) * pageSize : null;
+
 
     // 🔍 Search term filter (brandName, status, etc.)
     if (searchTerm) {
@@ -118,11 +119,11 @@ router.get("/orders", async (req, res) => {
 
     // ✅ Fetch paginated orders
     let orders = await Order.findAll({
-      where,
-      limit: pageSize,
-      offset,
-      order: [['id', 'DESC']],
-    });
+  where,
+  ...(pageSize && offset !== null ? { limit: pageSize, offset } : {}),
+  order: [['id', 'DESC']],
+});
+
 
     // ⏰ Overdue / Due Today filter (after fetching)
     if (statusFilter) {

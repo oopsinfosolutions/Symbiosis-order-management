@@ -293,14 +293,34 @@ useEffect(() => {
   return () => clearTimeout(debounceTimer);
 }, [searchTerm, navStatus, stageFilter, statusFilter, category, selectedPrinter, selectedSections, page]);
 
-  const exportToExcel = () => {
-    const exportData = orders.map(order => ({ 
+ const exportToExcel = async () => {
+  try {
+    const response = await axios.get("http://192.168.0.111:5000/api/orders", {
+      params: {
+        empId,
+        searchTerm,
+        navStatus,
+        stageFilter: Array.isArray(stageFilter) ? stageFilter.join(",") : stageFilter,
+        statusFilter,
+        category,
+        selectedPrinter,
+        selectedSections,
+        // ❌ omit page and limit to get ALL
+      }
+    });
+
+    const allFilteredOrders = Array.isArray(response.data.orders) ? response.data.orders : [];
+
+    const exportData = allFilteredOrders.map(order => ({
       "Order ID": order.id,
       "Date": order.date?.split("T")[0],
       "Brand Name": order.brandName,
       "Quantity": order.qty,
       "Rate": order.rate,
       "Amount": order.amount,
+      "Stage": order.stage,
+      "Concerned Person": order.concernedPerson,
+      "Client Name": order.clientName,
       "Product Status": order.productStatus,
       "Status": getStatus(order.date, order.productStatus, order.stage, order.poDate).label
     }));
@@ -316,8 +336,11 @@ useEffect(() => {
 
     const data = new Blob([excelBuffer], { type: "application/octet-stream" });
     saveAs(data, `orders_${new Date().toISOString().slice(0, 10)}.xlsx`);
+  } catch (err) {
+    console.error("❌ Error exporting all orders:", err);
+  }
+};
 
-  };
 
   const getStageTitle = () => {
     console.log(stageFilter)
